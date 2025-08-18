@@ -54,13 +54,14 @@ export default function Conversation({
     <div>
       <h1>Conversation</h1>
 
-      <div style={{ border: '1px solid #ccc', padding: '1rem', height: '300px', overflowY: 'auto' }}>
+      <div style={{ border: '1px solid #ccc', padding: '1rem' }}>
         <Paginator 
           conversationId={conversationId} 
           messages={messages} 
           setMessages={setMessages} 
         />
       </div>
+
 
       <div style={{ marginTop: '1rem' }}>
         <input
