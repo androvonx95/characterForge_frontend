@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import supabase from './supabaseClient';
 import { createCharacter } from './createCharacter';
+import LazyBotIntro from './useLazyMessages';
+import { getCharacterById, type Character } from './getCharacterInfo';
 
 export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats') => void }) {
   const [myCharacters, setMyCharacters] = useState<any[]>([]);
@@ -8,12 +10,16 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // modal + form state
   const [showModal, setShowModal] = useState(false);
   const [newName, setNewName] = useState('');
-  const [newPrompt, setNewPrompt] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [newStartingMessage, setNewStartingMessage] = useState('');
   const [isPrivate, setIsPrivate] = useState(true);
   const [creating, setCreating] = useState(false);
+
+  // Lazy bot state
+  const [activeBotId, setActiveBotId] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null); // <-- store token in state
 
   useEffect(() => {
     const getCharacters = async () => {
@@ -25,23 +31,23 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
           return;
         }
 
-        const token = data.session.access_token;
-        if (!token) {
+        const t = data.session.access_token;
+        if (!t) {
           setError('No token found');
           setLoading(false);
           return;
         }
 
-        // Fetch user's private characters
+        setToken(t); // store token in state
+
         const myResponse = await fetch(import.meta.env.VITE_MY_CHARACTERS, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${t}` },
         });
         const myChars = await myResponse.json();
         setMyCharacters(myChars);
 
-        // Fetch all public characters
         const publicResponse = await fetch(import.meta.env.VITE_GET_PUBLIC_CHARS_EDGE_FUNC, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${t}` },
         });
         const publicChars = await publicResponse.json();
         setPublicCharacters(publicChars);
@@ -56,29 +62,29 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
   }, []);
 
   const handleCreateCharacter = async () => {
-    if (!newName.trim() || !newPrompt.trim()) {
-      return; // should never be hit now because button is disabled
-    }
+    if (!newName.trim() || !newDescription.trim() || !newStartingMessage.trim()) return;
 
     setCreating(true);
     try {
+      const promptObj = {
+        description: newDescription,
+        startingMessage: newStartingMessage,
+      };
+
       const result = await createCharacter({
         name: newName,
-        prompt: newPrompt,
+        prompt: JSON.stringify(promptObj),
         private: isPrivate,
       });
 
-      console.log("Created:", result);
-
-      // update local list
       setMyCharacters((prev) => [
         ...prev,
-        { id: Date.now(), name: newName, private: isPrivate },
+        { id: result.id || Date.now(), name: newName, private: isPrivate },
       ]);
 
-      // reset + close modal
       setNewName('');
-      setNewPrompt('');
+      setNewDescription('');
+      setNewStartingMessage('');
       setIsPrivate(true);
       setShowModal(false);
     } catch (err: any) {
@@ -88,7 +94,20 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
     }
   };
 
-  const isInvalid = !newName.trim() || !newPrompt.trim();
+  // Show LazyBotIntro only if a bot is selected and token is available
+  if (activeBotId && token) {
+    return (
+      <LazyBotIntro
+        characterId={activeBotId}
+        onStartConversation={(convId, msg) => {
+          console.log("Start conversation:", convId, msg);
+          setActiveBotId(null);
+          onNavigate('my-chats');
+        }}
+        authToken={token}
+      />
+    );
+  }
 
   return (
     <div>
@@ -96,31 +115,35 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: 'red' }}>Error: {error}</p>}
 
-      {/* My Characters Section */}
+      {/* My Characters */}
       <div style={{ marginBottom: '20px' }}>
         <h2>
-          My Characters{" "}
-          <button onClick={() => setShowModal(true)}>Create Bot</button>
+          My Characters <button onClick={() => setShowModal(true)}>Create Bot</button>
         </h2>
-
         {myCharacters.length > 0 && (
           <ul>
-            {myCharacters.map((character) => (
-              <li key={character.id}>
-                {character.name} {character.private ? "(Private)" : "(Public)"}
+            {myCharacters.map((char) => (
+              <li key={char.id}>
+                <button onClick={() => setActiveBotId(char.id.toString())}>
+                  {char.name} {char.private ? "(Private)" : "(Public)"}
+                </button>
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      {/* Public Characters Section */}
+      {/* Public Characters */}
       {publicCharacters.length > 0 && (
         <div>
           <h2>All Characters</h2>
           <ul>
-            {publicCharacters.map((character) => (
-              <li key={character.id}>{character.name}</li>
+            {publicCharacters.map((char) => (
+              <li key={char.id}>
+                <button onClick={() => setActiveBotId(char.id.toString())}>
+                  {char.name}
+                </button>
+              </li>
             ))}
           </ul>
         </div>
@@ -130,63 +153,26 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
         My Chats
       </button>
 
-      {/* Modal */}
+      {/* Modal for creating bot */}
       {showModal && (
         <div style={{
-          position: "fixed",
-          top: 0, left: 0,
-          width: "100%", height: "100%",
-          background: "rgba(0,0,0,0.5)",
-          display: "flex", justifyContent: "center", alignItems: "center",
+          position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+          background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center",
           zIndex: 1000
         }}>
-          <div style={{
-            background: "#fff",
-            padding: "20px",
-            borderRadius: "8px",
-            width: "400px",
-            maxWidth: "90%"
-          }}>
+          <div style={{ background: "#fff", padding: "30px", borderRadius: "10px", width: "450px", maxWidth: "90%" }}>
             <h3>Create a New Character</h3>
-            <input
-              type="text"
-              placeholder="Character name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              style={{ display: "block", marginBottom: "10px", width: "100%" }}
-            />
-            <textarea
-              placeholder="Character prompt"
-              value={newPrompt}
-              onChange={(e) => setNewPrompt(e.target.value)}
-              style={{ display: "block", marginBottom: "10px", width: "100%" }}
-            />
-            <label>
-              <input
-                type="checkbox"
-                checked={isPrivate}
-                onChange={() => setIsPrivate((p) => !p)}
-              />{" "}
-              Private
+            <input type="text" placeholder="Character name" value={newName} onChange={(e) => setNewName(e.target.value)} style={{ display: "block", marginBottom: "15px", width: "100%", padding: "10px", fontSize: "16px" }} />
+            <textarea placeholder="Character description" value={newDescription} onChange={(e) => setNewDescription(e.target.value)} style={{ display: "block", marginBottom: "15px", width: "100%", height: "120px", padding: "10px", fontSize: "16px", resize: "none", boxSizing: "border-box" }} />
+            <textarea placeholder="Starting message" value={newStartingMessage} onChange={(e) => setNewStartingMessage(e.target.value)} style={{ display: "block", marginBottom: "15px", width: "100%", height: "120px", padding: "10px", fontSize: "16px", resize: "none", boxSizing: "border-box" }} />
+            <label style={{ display: "block", marginBottom: "15px" }}>
+              <input type="checkbox" checked={isPrivate} onChange={() => setIsPrivate((p) => !p)} /> Private
             </label>
-
-            {/* Live validation message */}
-            {isInvalid && (
-              <p style={{ color: "red", fontSize: "0.85em", marginTop: "8px" }}>
-                ⚠️ Please fill in all fields.
-              </p>
-            )}
-
-            <div style={{ marginTop: "15px" }}>
-              <button
-                onClick={handleCreateCharacter}
-                disabled={creating || isInvalid}
-              >
+            <div style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+              <button onClick={handleCreateCharacter} disabled={creating || !newName.trim() || !newDescription.trim() || !newStartingMessage.trim()} style={{ padding: "10px 20px", fontSize: "16px", cursor: creating ? "not-allowed" : "pointer" }}>
                 {creating ? "Creating..." : "Create"}
               </button>
-              <button style={{ marginLeft: "10px" }} onClick={() => setShowModal(false)}>
-                Cancel
-              </button>
+              <button style={{ marginLeft: "15px", padding: "10px 20px", fontSize: "16px" }} onClick={() => setShowModal(false)}>Cancel</button>
             </div>
           </div>
         </div>

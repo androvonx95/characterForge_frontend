@@ -1,28 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import supabase from './supabaseClient';
 import Paginator from './Paginator';
 import { sendAiMessage } from './aiChat';
-import type { Message } from './types'; // 👈 shared type
- // 👈 shared type
+import type { Message } from './types';
 
-export default function Conversation({
-  conversationId,
-  onNavigate
-}: { 
-  conversationId: string; 
-  onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void 
-}) {
+interface ConversationProps {
+  conversationId: string;
+  onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void;
+  initialUserMessage?: string; // ✅ optional first message
+}
+
+export default function Conversation({ conversationId, onNavigate, initialUserMessage }: ConversationProps) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]); // 👈 shared
+  const [messages, setMessages] = useState<Message[]>([]);
 
-  async function handleSend() {
-    if (!input.trim()) return;
+  // Automatically send initial user message if provided
+  useEffect(() => {
+    if (initialUserMessage) {
+      sendMessage(initialUserMessage);
+    }
+  }, [initialUserMessage]);
 
-    const userMessage: Message = { role: 'user', content: input.trim() };
+  async function sendMessage(messageContent: string) {
+    if (!messageContent.trim()) return;
+
+    const userMessage: Message = { role: 'user', content: messageContent.trim() };
     setMessages(prev => [...prev, userMessage]);
-    setInput('');
     setLoading(true);
     setError(null);
 
@@ -50,6 +55,11 @@ export default function Conversation({
     }
   }
 
+  function handleSend() {
+    sendMessage(input);
+    setInput('');
+  }
+
   return (
     <div>
       <h1>Conversation</h1>
@@ -61,7 +71,6 @@ export default function Conversation({
           setMessages={setMessages} 
         />
       </div>
-
 
       <div style={{ marginTop: '1rem' }}>
         <input
