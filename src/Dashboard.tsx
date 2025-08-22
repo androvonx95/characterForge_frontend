@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import supabase from './supabaseClient';
 import { createCharacter } from './createCharacter';
 import LazyBotIntro from './useLazyMessages';
-import { getCharacterById, type Character } from './getCharacterInfo';
+import Conversation from './conversation'; // 👈 make sure this import exists
 
 export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats') => void }) {
   const [myCharacters, setMyCharacters] = useState<any[]>([]);
@@ -19,7 +19,10 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
 
   // Lazy bot state
   const [activeBotId, setActiveBotId] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null); // <-- store token in state
+  const [token, setToken] = useState<string | null>(null);
+
+  // ✅ conversation state
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     const getCharacters = async () => {
@@ -38,7 +41,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
           return;
         }
 
-        setToken(t); // store token in state
+        setToken(t);
 
         const myResponse = await fetch(import.meta.env.VITE_MY_CHARACTERS, {
           headers: { Authorization: `Bearer ${t}` },
@@ -94,21 +97,39 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
     }
   };
 
-  // Show LazyBotIntro only if a bot is selected and token is available
+  // ✅ if conversation is active, render Conversation.tsx directly
+  if (activeConversationId) {
+    return (
+      <Conversation
+        conversationId={activeConversationId}
+        onNavigate={(page) => {
+          if (page === 'my-chats') {
+            setActiveConversationId(null);
+            onNavigate('my-chats');
+          } else {
+            setActiveConversationId(null);
+            onNavigate('dashboard');
+          }
+        }}
+      />
+    );
+  }
+
+  // ✅ if bot is selected, show LazyBotIntro
   if (activeBotId && token) {
     return (
       <LazyBotIntro
         characterId={activeBotId}
-        onStartConversation={(convId, msg) => {
-          console.log("Start conversation:", convId, msg);
+        onStartConversation={(convId) => {
+          setActiveConversationId(convId); // 👈 go straight into conversation
           setActiveBotId(null);
-          onNavigate('my-chats');
         }}
         authToken={token}
       />
     );
   }
 
+  // Default dashboard view
   return (
     <div>
       <h1>Dashboard</h1>
