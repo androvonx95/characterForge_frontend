@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import supabase from './supabaseClient';
 import { type Message } from './types'; 
 import { deleteMessages } from './deleteMsgs';
-
+ 
 export default function Paginator({
   conversationId,
   messages,
@@ -170,16 +170,25 @@ export default function Paginator({
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-
+  
     const handleScroll = () => {
+      // Check if scrolled to the top and more messages are available
       if (container.scrollTop === 0 && hasMore && !loading) {
-        const oldScrollHeight = container.scrollHeight;
+        const oldScrollHeight = container.scrollHeight; // Get scroll height before fetch
+        const currentScrollTop = container.scrollTop; // Get current scroll position
+  
+        // Fetch new messages
         fetchMessages().then(() => {
-          container.scrollTop = container.scrollHeight - oldScrollHeight;
+          // After fetching, calculate how much to scroll up to maintain the position
+          const newScrollHeight = container.scrollHeight;
+          const scrollDifference = newScrollHeight - oldScrollHeight;
+          
+          // Adjust the scroll position after fetching messages
+          container.scrollTop = currentScrollTop + scrollDifference;
         });
       }
     };
-
+  
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
   }, [hasMore, loading, startingIdx]);

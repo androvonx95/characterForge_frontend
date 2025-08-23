@@ -3,6 +3,7 @@ import supabase from './supabaseClient';
 import Paginator from './Paginator';
 import { sendAiMessage } from './aiChat';
 import type { Message } from './types';
+import { getBotAndLastMessage } from './fetchBotAndLastMessage';
 
 interface ConversationProps {
   conversationId: string;
@@ -15,8 +16,17 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [botInfo, setBotInfo] = useState<any>(null); // State to store bot details
 
-  // Automatically send initial user message if provided
+  const fetchBotDetails = async () => {
+    const botData = await getBotAndLastMessage(conversationId);
+    setBotInfo(botData?.result[0]); // Assuming bot info is in result[0]
+  };
+
+  useEffect(() => {
+    fetchBotDetails();
+  }, [conversationId]);
+
   useEffect(() => {
     if (initialUserMessage) {
       sendMessage(initialUserMessage);
@@ -62,7 +72,13 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
 
   return (
     <div>
-      <h1>Conversation</h1>
+      {/* Bot Info Section (Only Name and Description) */}
+      {botInfo && (
+        <div style={botInfoContainerStyle}>
+          <h2 style={botNameStyle}>{botInfo.bot_name}</h2>
+          <p style={botDescriptionStyle}>{botInfo.bot_prompt.description}</p>
+        </div>
+      )}
 
       <div style={{ border: '1px solid #ccc', padding: '1rem' }}>
         <Paginator 
@@ -91,3 +107,24 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
     </div>
   );
 }
+
+// Styles for bot info
+const botInfoContainerStyle: React.CSSProperties = {
+  marginBottom: '20px',
+  padding: '10px',
+  backgroundColor: '#f9f9f9',
+  borderRadius: '8px',
+  border: '1px solid #ddd',
+};
+
+const botNameStyle: React.CSSProperties = {
+  fontSize: '1.5rem',
+  fontWeight: 'bold',
+  marginBottom: '5px',
+};
+
+const botDescriptionStyle: React.CSSProperties = {
+  fontSize: '1rem',
+  color: '#555',
+  marginBottom: '10px',
+};
