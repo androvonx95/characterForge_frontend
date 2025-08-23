@@ -80,13 +80,13 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
         </div>
       )}
 
-      <div style={{ border: '1px solid #ccc', padding: '1rem' }}>
+      {/* <div style={{ border: '1px solid #ccc', padding: '1rem' }}> */}
         <Paginator 
           conversationId={conversationId} 
           messages={messages} 
           setMessages={setMessages} 
         />
-      </div>
+      {/* </div> */}
 
       <div style={{ marginTop: '1rem' }}>
         <input

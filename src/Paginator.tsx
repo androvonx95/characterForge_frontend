@@ -213,7 +213,7 @@ export default function Paginator({
           <div>
             <strong>{msg.role}:</strong> {msg.content}
           </div>
-
+          {/* Delete and Regenerate buttons */}
           <div style={{ display: "flex", gap: "4px" }}>
             <button
               style={{ fontSize: "0.8rem", padding: "2px 6px" }}

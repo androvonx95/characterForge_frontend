@@ -4,7 +4,7 @@ import { createCharacter } from './createCharacter';
 import LazyBotIntro from './useLazyMessages';
 import Conversation from './conversation'; // 👈 make sure this import exists
 
-export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats') => void }) {
+export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void }) {
   const [myCharacters, setMyCharacters] = useState<any[]>([]);
   const [publicCharacters, setPublicCharacters] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,8 +123,14 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
         onStartConversation={(convId) => {
           setActiveConversationId(convId); // 👈 go straight into conversation
           setActiveBotId(null);
+          onNavigate('conversation', convId); // ✅ actually navigate
         }}
         authToken={token}
+        onNavigate={(page, conversationId) => {
+          setActiveBotId(null);
+          setActiveConversationId(conversationId ?? null);
+          onNavigate(page, conversationId);
+        }}
       />
     );
   }
