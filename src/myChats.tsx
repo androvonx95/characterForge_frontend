@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import supabase from './supabaseClient';
 import { getBotAndLastMessage } from './fetchBotAndLastMessage';
+import './styles/MyChats.css'; // Import the CSS styles
 
 interface ChatDetail {
   id: string;
@@ -40,22 +41,17 @@ export default function MyChats({
         const result = await response.json();
         const conversations = result.conversations || [];
 
-        // Fetch bot and last message details in parallel
         const detailedChats = await Promise.all(
           conversations.map(async (conv: { id: string }) => {
             try {
               const detail = await getBotAndLastMessage(conv.id);
-
-              // Extracting the bot data from the result array (index 0)
               const botData = detail?.result?.[0];
-
               return {
                 id: conv.id,
                 botName: botData?.bot_name ?? 'Unknown Bot',
                 lastMessage: botData?.last_message_content ?? 'No messages yet',
               };
             } catch {
-              // Fallback if fetching details fails for a chat
               return {
                 id: conv.id,
                 botName: 'Unknown Bot',
@@ -77,63 +73,44 @@ export default function MyChats({
   }, []);
 
   return (
-    <div style={{ maxWidth: 800, margin: 'auto', padding: '1rem' }}>
-      {/* Dashboard Button at Top Left */}
+    <div className="myChats-container">
       <button
         onClick={() => onNavigate('dashboard')}
-        style={{
-          position: 'absolute',
-          top: 20,
-          left: 20,
-          padding: '10px 16px',
-          borderRadius: 6,
-          border: 'none',
-          backgroundColor: '#007bff',
-          color: 'white',
-          fontWeight: '600',
-          cursor: 'pointer',
-          fontSize: '1rem',
-        }}
+        className="myChats-dashboardBtn"
         aria-label="Go to dashboard"
       >
         Dashboard
       </button>
 
-      <h1 style={{ textAlign: 'center' }}>My Chats</h1>
+      <h1 className="myChats-title">My Chats</h1>
 
-      {loading && <p>Loading chats...</p>}
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+      {loading && <p className="myChats-loading">Loading chats...</p>}
+      {error && <p className="myChats-error">Error: {error}</p>}
+      {!loading && !error && chats.length === 0 && <p className="myChats-noChats">No chats yet.</p>}
 
-      {!loading && !error && chats.length === 0 && <p>No chats yet.</p>}
-
-      <ul style={{ listStyle: 'none', padding: 0 }}>
+      <div className="myChats-list">
         {chats.map(({ id, botName, lastMessage }) => (
-          <li key={id} style={{ marginBottom: 12 }}>
-            <button
-              onClick={() => onNavigate('conversation', id)}
-              style={{
-                width: '100%',
-                textAlign: 'left',
-                padding: '12px 16px',
-                borderRadius: 6,
-                border: '1px solid #ddd',
-                cursor: 'pointer',
-                backgroundColor: '#f9f9f9',
-                transition: 'background-color 0.2s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#eaeaea')}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#f9f9f9')}
-              aria-label={`Open conversation with bot ${botName}`}
-            >
-              <div style={{ fontWeight: '600', fontSize: '1.1rem' }}>{botName}</div>
-              <div style={{ color: '#555', marginTop: 4, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {lastMessage || <i>No messages yet</i>}
-              </div>
-              <small style={{ color: '#999' }}>Conversation ID: {id}</small>
-            </button>
-          </li>
+          <div
+            key={id}
+            role="button"
+            tabIndex={0}
+            onClick={() => onNavigate('conversation', id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onNavigate('conversation', id);
+              }
+            }}
+            className="myChats-card"
+            title={`Conversation with ${botName}`}
+          >
+            <div className="myChats-botName">{botName}</div>
+            <div className="myChats-lastMessage" title={lastMessage}>
+              {lastMessage || <i>No messages yet</i>}
+            </div>
+            <small className="myChats-conversationId">Conversation ID: {id}</small>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
