@@ -1,0 +1,236 @@
+:root {
+    --bg-color: #121212;
+    --card-bg: #1f1f1f;
+    --text-color: #f0f0f0;
+    --border-color: #2c2c2c;
+    --accent-color: #ff4081;
+    --accent-hover: #ff5c93;
+    --error-color: #ff4d4d;
+  }
+  
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .dashboard-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .dashboard-heading {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    color: var(--text-color);
+  }
+  
+  .dashboard-error {
+    color: var(--error-color);
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .dashboard-section {
+    margin-bottom: 3rem;
+  }
+  
+  .character-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+    list-style: none;
+    padding: 0;
+  }
+  
+  .char-button {
+    width: 100%;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: 0.2s ease-in-out;
+  }
+  
+  .char-button:hover {
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    background-color: #2a2a2a;
+  }
+  
+  .primary-button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.4rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .primary-button:hover {
+    background-color: var(--accent-hover);
+  }
+  
+  .my-chats-button {
+    display: block;
+    margin: 2rem auto 0;
+  }
+  
+  .cancel-button {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .cancel-button:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(18, 18, 18, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  
+  .modal {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: 16px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  }
+  
+  .modal h3 {
+    margin-top: 0;
+    color: var(--text-color);
+  }
+  
+  .modal-input,
+  .modal-textarea {
+    width: 100%;
+    background: #2a2a2a;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    resize: vertical;
+  }
+  
+  .modal-textarea {
+    min-height: 80px;
+  }
+  
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+
+  .character-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+  }
+  
+  .character-card {
+    background-color: #1e1e1e;
+    border: 1px solid var(--border-color, #333);
+    border-radius: 10px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  
+  .character-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent-color, #4fc3f7);
+  }
+  
+  .character-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .character-card h3 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+  
+  .visibility-badge {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  
+  .visibility-badge.private {
+    background-color: #b71c1c;
+    color: white;
+  }
+  
+  .visibility-badge.public {
+    background-color: #2e7d32;
+    color: white;
+  }
+  
+  .character-description {
+    margin: 0.5rem 0;
+    color: #aaa;
+    font-size: 0.95rem;
+  }
+  
+  .character-snippet {
+    font-style: italic;
+    color: #ccc;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .character-date {
+    font-size: 0.75rem;
+    color: #777;
+  }
+  

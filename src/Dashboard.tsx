@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import supabase from './supabaseClient';
 import { createCharacter } from './createCharacter';
 import LazyBotIntro from './useLazyMessages';
-import Conversation from './conversation'; // 👈 make sure this import exists
+import Conversation from './conversation';
+import './styles/Dashboard.css';
 
 export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void }) {
   const [myCharacters, setMyCharacters] = useState<any[]>([]);
@@ -17,11 +18,8 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
   const [isPrivate, setIsPrivate] = useState(true);
   const [creating, setCreating] = useState(false);
 
-  // Lazy bot state
   const [activeBotId, setActiveBotId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
-
-  // ✅ conversation state
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,8 +52,10 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
         });
         const publicChars = await publicResponse.json();
         setPublicCharacters(publicChars);
+        // console.log(publicChars);
+        console.log(myChars);
       } catch (err) {
-        setError((err as any).message || 'Failed to fetch characters: Unknown error');
+        setError((err as any).message || 'Failed to fetch characters');
       } finally {
         setLoading(false);
       }
@@ -97,33 +97,26 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
     }
   };
 
-  // ✅ if conversation is active, render Conversation.tsx directly
   if (activeConversationId) {
     return (
       <Conversation
         conversationId={activeConversationId}
         onNavigate={(page) => {
-          if (page === 'my-chats') {
-            setActiveConversationId(null);
-            onNavigate('my-chats');
-          } else {
-            setActiveConversationId(null);
-            onNavigate('dashboard');
-          }
+          setActiveConversationId(null);
+          onNavigate(page);
         }}
       />
     );
   }
 
-  // ✅ if bot is selected, show LazyBotIntro
   if (activeBotId && token) {
     return (
       <LazyBotIntro
         characterId={activeBotId}
         onStartConversation={(convId) => {
-          setActiveConversationId(convId); // 👈 go straight into conversation
+          setActiveConversationId(convId);
           setActiveBotId(null);
-          onNavigate('conversation', convId); // ✅ actually navigate
+          onNavigate('conversation', convId);
         }}
         authToken={token}
         onNavigate={(page, conversationId) => {
@@ -135,71 +128,133 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
     );
   }
 
-  // Default dashboard view
   return (
-    <div>
-      <h1>Dashboard</h1>
+    <div className="dashboard-container">
+      <h1 className="dashboard-heading">🎮 Character Dashboard</h1>
       {loading && <p>Loading...</p>}
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+      {error && <p className="dashboard-error">{error}</p>}
 
-      {/* My Characters */}
-      <div style={{ marginBottom: '20px' }}>
-        <h2>
-          My Characters <button onClick={() => setShowModal(true)}>Create Bot</button>
-        </h2>
-        {myCharacters.length > 0 && (
-          <ul>
-            {myCharacters.map((char) => (
-              <li key={char.id}>
-                <button onClick={() => setActiveBotId(char.id.toString())}>
-                  {char.name} {char.private ? "(Private)" : "(Public)"}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* Public Characters */}
-      {publicCharacters.length > 0 && (
-        <div>
-          <h2>All Characters</h2>
-          <ul>
-            {publicCharacters.map((char) => (
-              <li key={char.id}>
-                <button onClick={() => setActiveBotId(char.id.toString())}>
-                  {char.name}
-                </button>
-              </li>
-            ))}
-          </ul>
+      <section className="dashboard-section">
+        <div className="section-header">
+          <h2>My Characters</h2>
+          <button className="primary-button my-chats-button" onClick={() => onNavigate('my-chats')}>
+            💬 My Chats
+          </button>
+          <button className="primary-button" onClick={() => setShowModal(true)}>+ Create Bot</button>
         </div>
-      )}
 
-      <button style={{ marginTop: '20px' }} onClick={() => onNavigate('my-chats')}>
-        My Chats
-      </button>
 
-      {/* Modal for creating bot */}
+        <div className="character-card-grid">
+          {myCharacters.map((char) => {
+            let description = "";
+            let startingMessage = "";
+
+            if (typeof char.prompt === "string") {
+              try {
+                // Try parsing prompt as JSON
+                const parsed = JSON.parse(char.prompt);
+                description = parsed.description || "";
+                startingMessage = parsed.startingMessage || "";
+              } catch {
+                // If parsing fails, treat prompt as plain string
+                description = "";
+                startingMessage = char.prompt;
+              }
+            }
+
+            return (
+              <div
+                key={char.id}
+                className="character-card"
+                onClick={() => setActiveBotId(char.id.toString())}
+              >
+                <div className="character-card-header">
+                  <h3>{char.name}</h3>
+                  <span className={`visibility-badge ${char.private ? "private" : "public"}`}>
+                    {char.private ? "Private" : "Public"}
+                  </span>
+                </div>
+                {description && <p className="character-description">{description}</p>}
+                {startingMessage && (
+                  <p className="character-snippet">{startingMessage.slice(0, 100)}...</p>
+                )}
+                {char.createdAt && (
+                  <p className="character-date">
+                    Created: {new Date(char.createdAt).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+
+      </section>
+      {publicCharacters.length > 0 && (
+  <section className="dashboard-section">
+    <h2>All Characters</h2>
+    <div className="character-card-grid">
+      {publicCharacters.map((char) => {
+        let description = "";
+        let startingMessage = "";
+
+        if (typeof char.prompt === "string") {
+          try {
+            const parsed = JSON.parse(char.prompt);
+            description = parsed.description || "";
+            startingMessage = parsed.startingMessage || "";
+          } catch {
+            description = "";
+            startingMessage = char.prompt;
+          }
+        }
+
+        return (
+          <div
+            key={char.id}
+            className="character-card"
+            onClick={() => setActiveBotId(char.id.toString())}
+          >
+            <div className="character-card-header">
+              <h3>{char.name}</h3>
+              <span className="visibility-badge public">Public</span>
+            </div>
+            {description && <p className="character-description">{description}</p>}
+            {startingMessage && (
+              <p className="character-snippet">{startingMessage.slice(0, 100)}...</p>
+            )}
+            {char.createdAt && (
+              <p className="character-date">
+                Created: {new Date(char.createdAt).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </section>
+)}
+
+
+
+
+
       {showModal && (
-        <div style={{
-          position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
-          background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center",
-          zIndex: 1000
-        }}>
-          <div style={{ background: "#fff", padding: "30px", borderRadius: "10px", width: "450px", maxWidth: "90%" }}>
+        <div className="modal-overlay">
+          <div className="modal">
             <h3>Create a New Character</h3>
-            <input type="text" placeholder="Character name" value={newName} onChange={(e) => setNewName(e.target.value)} style={{ display: "block", marginBottom: "15px", width: "100%", padding: "10px", fontSize: "16px" }} />
-            <textarea placeholder="Character description" value={newDescription} onChange={(e) => setNewDescription(e.target.value)} style={{ display: "block", marginBottom: "15px", width: "100%", height: "120px", padding: "10px", fontSize: "16px", resize: "none", boxSizing: "border-box" }} />
-            <textarea placeholder="Starting message" value={newStartingMessage} onChange={(e) => setNewStartingMessage(e.target.value)} style={{ display: "block", marginBottom: "15px", width: "100%", height: "120px", padding: "10px", fontSize: "16px", resize: "none", boxSizing: "border-box" }} />
-            <label style={{ display: "block", marginBottom: "15px" }}>
-              <input type="checkbox" checked={isPrivate} onChange={() => setIsPrivate((p) => !p)} /> Private
+            <input className="modal-input" placeholder="Character Name" value={newName} onChange={(e) => setNewName(e.target.value)} />
+            <textarea className="modal-textarea" placeholder="Character Description" value={newDescription} onChange={(e) => setNewDescription(e.target.value)} />
+            <textarea className="modal-textarea" placeholder="Starting Message" value={newStartingMessage} onChange={(e) => setNewStartingMessage(e.target.value)} />
+            <label className="checkbox-label">
+              <input type="checkbox" checked={isPrivate} onChange={() => setIsPrivate(p => !p)} />
+              {' '}Private
             </label>
-            <div style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-              <button onClick={handleCreateCharacter} disabled={creating || !newName.trim() || !newDescription.trim() || !newStartingMessage.trim()} style={{ padding: "10px 20px", fontSize: "16px", cursor: creating ? "not-allowed" : "pointer" }}>
+            <div className="modal-actions">
+              <button className="primary-button" disabled={creating} onClick={handleCreateCharacter}>
                 {creating ? "Creating..." : "Create"}
               </button>
-              <button style={{ marginLeft: "15px", padding: "10px 20px", fontSize: "16px" }} onClick={() => setShowModal(false)}>Cancel</button>
+              <button className="cancel-button" onClick={() => setShowModal(false)}>Cancel</button>
             </div>
           </div>
         </div>
