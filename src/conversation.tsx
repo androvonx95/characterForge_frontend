@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import supabase from './supabaseClient';
 import Paginator from './Paginator';
 import { sendAiMessage } from './aiChat';
@@ -18,6 +18,7 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [botInfo, setBotInfo] = useState<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const fetchBotDetails = async () => {
     const botData = await getBotAndLastMessage(conversationId);
@@ -33,6 +34,11 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
       sendMessage(initialUserMessage);
     }
   }, [initialUserMessage]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   async function sendMessage(messageContent: string) {
     if (!messageContent.trim()) return;
@@ -98,7 +104,7 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
         <div className="bot-info">
           <h1 className="bot-name">{botInfo?.bot_name || 'Loading...'}</h1>
           <p className="bot-description">
-            {botInfo?.bot_prompt?.description || ""}
+            {botInfo?.bot_prompt?.description || 'Chat with your AI assistant'}
           </p>
         </div>
         <button 
@@ -113,7 +119,8 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
       <Paginator 
         conversationId={conversationId} 
         messages={messages} 
-        setMessages={setMessages} 
+        setMessages={setMessages}
+        messagesEndRef={messagesEndRef}
       />
 
       {/* Loading indicator */}
