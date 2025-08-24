@@ -4,6 +4,7 @@ import { createCharacter } from './createCharacter';
 import LazyBotIntro from './useLazyMessages';
 import Conversation from './conversation';
 import './styles/Dashboard.css';
+import './styles/global.css';
 
 export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void }) {
   const [myCharacters, setMyCharacters] = useState<any[]>([]);

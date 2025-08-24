@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import supabase from './supabaseClient';
 import { getBotAndLastMessage } from './fetchBotAndLastMessage';
+import './styles/global.css';
 import './styles/MyChats.css'; // Import the CSS styles
 
 interface ChatDetail {
