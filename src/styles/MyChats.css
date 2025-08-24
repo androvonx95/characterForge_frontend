@@ -1,86 +1,108 @@
 /* Container and page styles */
 .myChats-container {
-    max-width: 800px;
-    margin: auto;
-    padding: 1rem;
-    background-color: #121212;
-    min-height: 100vh;
-    color: #eee;
-    position: relative;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  
-  /* Dashboard button - pink with pink glow */
-  .myChats-dashboardBtn {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    padding: 10px 16px;
-    border-radius: 6px;
-    border: none;
-    background-color: #d6336c; /* rich pink */
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 1rem;
-    box-shadow: 0 2px 6px rgba(214, 51, 108, 0.7); /* pink glow */
-    transition: background-color 0.3s, box-shadow 0.3s;
-  }
-  
-  .myChats-dashboardBtn:hover,
-  .myChats-dashboardBtn:focus {
-    background-color: #b22a58; /* darker pink */
-    box-shadow: 0 4px 12px rgba(214, 51, 108, 0.9);
-    outline: none;
-  }
-  
-  /* Title */
-  .myChats-title {
-    text-align: center;
-    margin-bottom: 24px;
-    font-weight: 700;
-    font-size: 2rem;
-  }
-  
-  /* Status messages */
-  .myChats-loading,
-  .myChats-error,
-  .myChats-noChats {
-    text-align: center;
-    font-size: 1.1rem;
-    margin-top: 20px;
-  }
-  
-  .myChats-error {
-    color: #ff6666;
-  }
-  
-  /* List container */
-  .myChats-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  /* Each chat card: wider and shorter */
-  .myChats-card {
-    background-color: #1f1f1f;
-    border-radius: 12px;
-    padding: 0.75rem 2rem;
-    width: 100%;
-    max-width: 100%;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    cursor: pointer;
-    transition: background-color 0.2s, box-shadow 0.3s, transform 0.3s ease;
-    outline: none;
-    user-select: none;
-    height: 70px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  
- /* Hover/focus: lift & shadow pop */
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #121212;
+  color: #eee;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  padding-top: 100px; /* Space for fixed header */
+}
+
+/* Header - properly fixed to viewport */
+.myChats-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #121212;
+  padding: 1rem;
+  z-index: 1000;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Header content wrapper to maintain max-width */
+.myChats-header-content {
+  max-width: 800px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Content area */
+.myChats-content {
+  flex: 1;
+  padding-bottom: 2rem;
+}
+
+/* Chat list */
+.myChats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0 1rem;
+}
+
+/* Dashboard button - positioned within header content */
+.myChats-dashboardBtn {
+  position: absolute;
+  left: 0;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  background-color: #d6336c;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  box-shadow: 0 2px 6px rgba(214, 51, 108, 0.7);
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.2s;
+}
+
+.myChats-dashboardBtn:hover {
+  background-color: #b8295a;
+  box-shadow: 0 4px 12px rgba(214, 51, 108, 0.9);
+  transform: translateY(-1px);
+}
+
+/* Title */
+.myChats-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 2rem;
+  text-align: center;
+}
+
+/* Each chat card: wider and shorter */
+.myChats-card {
+  background-color: #1f1f1f;
+  border-radius: 12px;
+  padding: 0.75rem 2rem;
+  width: 100%;
+  max-width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.3s, transform 0.3s ease;
+  outline: none;
+  user-select: none;
+  height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Hover/focus: lift & shadow pop */
 .myChats-card:hover,
 .myChats-card:focus {
   background-color: #2a2a2a;
@@ -88,33 +110,65 @@
   transform: translateY(-6px) scale(1.03); /* slight lift & scale */
   outline: none;
 }
-  
-  /* Bot name */
-  .myChats-botName {
-    font-weight: 700;
-    font-size: 1.2rem;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+
+/* Bot name */
+.myChats-botName {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Last message */
+.myChats-lastMessage {
+  color: #ccc;
+  font-size: 0.9rem;
+  height: 1.2em; /* approx 1 line height */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 0;
+}
+
+/* Conversation ID */
+.myChats-conversationId {
+  color: #666;
+  font-size: 0.75rem;
+  font-style: italic;
+  user-select: text;
+}
+
+/* Loading and error states */
+.myChats-loading,
+.myChats-error,
+.myChats-noChats {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.myChats-error {
+  color: #ff6666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .myChats-container {
+    padding: 0.5rem;
+    padding-top: 80px; /* Adjust for smaller header */
   }
   
-  /* Last message */
-  .myChats-lastMessage {
-    color: #ccc;
+  .myChats-header {
+    padding: 0.75rem;
+  }
+  
+  .myChats-title {
+    font-size: 1.5rem;
+  }
+  
+  .myChats-dashboardBtn {
     font-size: 0.9rem;
-    height: 1.2em; /* approx 1 line height */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin-bottom: 0;
+    padding: 8px 12px;
   }
-  
-  /* Conversation ID */
-  .myChats-conversationId {
-    color: #666;
-    font-size: 0.75rem;
-    font-style: italic;
-    user-select: text;
-  }
-  
+}

@@ -4,11 +4,12 @@ import Paginator from './Paginator';
 import { sendAiMessage } from './aiChat';
 import type { Message } from './types';
 import { getBotAndLastMessage } from './fetchBotAndLastMessage';
+import './styles/chatUI.css'; // Import the CSS
 
 interface ConversationProps {
   conversationId: string;
   onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void;
-  initialUserMessage?: string; // ✅ optional first message
+  initialUserMessage?: string;
 }
 
 export default function Conversation({ conversationId, onNavigate, initialUserMessage }: ConversationProps) {
@@ -16,11 +17,11 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [botInfo, setBotInfo] = useState<any>(null); // State to store bot details
+  const [botInfo, setBotInfo] = useState<any>(null);
 
   const fetchBotDetails = async () => {
     const botData = await getBotAndLastMessage(conversationId);
-    setBotInfo(botData?.result[0]); // Assuming bot info is in result[0]
+    setBotInfo(botData?.result[0]);
   };
 
   useEffect(() => {
@@ -70,61 +71,51 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
     setInput('');
   }
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
   return (
-    <div>
-      {/* Bot Info Section (Only Name and Description) */}
+    <div className="chat-container">
+      {/* Bot Info Header */}
       {botInfo && (
-        <div style={botInfoContainerStyle}>
-          <h2 style={botNameStyle}>{botInfo.bot_name}</h2>
-          <p style={botDescriptionStyle}>{botInfo.bot_prompt.description}</p>
+        <div className="bot-info-header">
+          <h2 className="bot-name">{botInfo.bot_name}</h2>
+          <p className="bot-description">{botInfo.bot_prompt.description}</p>
         </div>
       )}
 
-      {/* <div style={{ border: '1px solid #ccc', padding: '1rem' }}> */}
-        <Paginator 
-          conversationId={conversationId} 
-          messages={messages} 
-          setMessages={setMessages} 
-        />
-      {/* </div> */}
+      {/* Messages Container */}
+      <Paginator 
+        conversationId={conversationId} 
+        messages={messages} 
+        setMessages={setMessages} 
+      />
 
-      <div style={{ marginTop: '1rem' }}>
+      {/* Input Container */}
+      <div className="input-container">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyPress={handleKeyPress}
           placeholder="Type your message..."
           disabled={loading}
-          style={{ width: '70%' }}
+          className="message-input"
         />
-        <button onClick={handleSend} disabled={loading}>
+        <button onClick={handleSend} disabled={loading} className="send-btn">
           {loading ? 'Sending...' : 'Send'}
         </button>
       </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <button onClick={() => onNavigate('my-chats', conversationId)}>Back</button>
+      {error && <div className="error-message">{error}</div>}
+      
+      <button onClick={() => onNavigate('my-chats', conversationId)} className="back-btn">
+        ← Back to Chats
+      </button>
     </div>
   );
 }
-
-// Styles for bot info
-const botInfoContainerStyle: React.CSSProperties = {
-  marginBottom: '20px',
-  padding: '10px',
-  backgroundColor: '#f9f9f9',
-  borderRadius: '8px',
-  border: '1px solid #ddd',
-};
-
-const botNameStyle: React.CSSProperties = {
-  fontSize: '1.5rem',
-  fontWeight: 'bold',
-  marginBottom: '5px',
-};
-
-const botDescriptionStyle: React.CSSProperties = {
-  fontSize: '1rem',
-  color: '#555',
-  marginBottom: '10px',
-};

@@ -75,42 +75,50 @@ export default function MyChats({
 
   return (
     <div className="myChats-container">
-      <button
-        onClick={() => onNavigate('dashboard')}
-        className="myChats-dashboardBtn"
-        aria-label="Go to dashboard"
-      >
-        Dashboard
-      </button>
-
-      <h1 className="myChats-title">My Chats</h1>
-
-      {loading && <p className="myChats-loading">Loading chats...</p>}
-      {error && <p className="myChats-error">Error: {error}</p>}
-      {!loading && !error && chats.length === 0 && <p className="myChats-noChats">No chats yet.</p>}
-
-      <div className="myChats-list">
-        {chats.map(({ id, botName, lastMessage }) => (
-          <div
-            key={id}
-            role="button"
-            tabIndex={0}
-            onClick={() => onNavigate('conversation', id)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                onNavigate('conversation', id);
-              }
-            }}
-            className="myChats-card"
-            title={`Conversation with ${botName}`}
+      <header className="myChats-header">
+        <div className="myChats-header-content">
+          <button
+            onClick={() => onNavigate('dashboard')}
+            className="myChats-dashboardBtn"
+            aria-label="Go to dashboard"
           >
-            <div className="myChats-botName">{botName}</div>
-            <div className="myChats-lastMessage" title={lastMessage}>
-              {lastMessage || <i>No messages yet</i>}
-            </div>
-            <small className="myChats-conversationId">Conversation ID: {id}</small>
+            Dashboard
+          </button>
+          <h1 className="myChats-title">My Chats</h1>
+        </div>
+      </header>
+
+      <div className="myChats-content">
+        {loading && <p className="myChats-loading">Loading chats...</p>}
+        {error && <p className="myChats-error">Error: {error}</p>}
+        
+        {!loading && !error && chats.length === 0 ? (
+          <p className="myChats-noChats">No chats yet.</p>
+        ) : (
+          <div className="myChats-list">
+            {chats.map(({ id, botName, lastMessage }) => (
+              <div
+                key={id}
+                role="button"
+                tabIndex={0}
+                onClick={() => onNavigate('conversation', id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    onNavigate('conversation', id);
+                  }
+                }}
+                className="myChats-card"
+                title={`Conversation with ${botName}`}
+              >
+                <div className="myChats-botName">{botName}</div>
+                <div className="myChats-lastMessage" title={lastMessage}>
+                  {lastMessage || <i>No messages yet</i>}
+                </div>
+                <small className="myChats-conversationId">Conversation ID: {id}</small>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
