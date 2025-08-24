@@ -139,11 +139,13 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
 
   return (
     <div className="dashboard-container">
+
+      
       <h1 className="dashboard-heading">🎮 Character Dashboard</h1>
       {loading && <p>Loading...</p>}
       {error && <p className="dashboard-error">{error}</p>}
 
-      <section className="dashboard-section">
+      <section className="dashboard-section my-characters-section">
         <div className="section-header">
           <h2>My Characters</h2>
           <button className="primary-button my-chats-button" onClick={() => onNavigate('my-chats')}>
@@ -152,119 +154,100 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
           <button className="primary-button" onClick={() => setShowModal(true)}>+ Create Bot</button>
         </div>
 
+        {/* NEW: Horizontal bar layout for My Characters */}
+        <div className="my-characters-bar">
+          <span className="my-characters-label">YOUR BOTS</span>
+          
+          <div 
+            className="create-bot-circle" 
+            onClick={() => setShowModal(true)}
+            title="Create Bot"
+          ></div>
 
-        <div className="character-card-grid">
-        {myCharacters.map((char) => {
-          let description = "";
-          let startingMessage = "";
-          let imageUrl = DEFAULT_IMAGE_URL;
-
-          if (typeof char.prompt === "string") {
-            try {
-              const parsed = JSON.parse(char.prompt);
-              description = parsed.description || "";
-              startingMessage = parsed.startingMessage || "";
-              imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
-            } catch {
-              description = "";
-              startingMessage = char.prompt;
-            }
-          }
-
-          return (
-            <div
-              key={char.id}
-              className="character-card"
-              onClick={() => setActiveBotId(char.id.toString())}
-            >
-              {/* 👇 Character Image */}
-              <img
-                src={imageUrl}
-                alt={char.name}
-                className="character-image"
-                onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL }}
-              />
-
-              <div className="character-card-header">
-                <h3>{char.name}</h3>
-                <span className={`visibility-badge ${char.private ? "private" : "public"}`}>
-                  {char.private ? "Private" : "Public"}
-                </span>
-              </div>
-
-              {description && <p className="character-description">{description}</p>}
-              {startingMessage && (
-                <p className="character-snippet">{startingMessage.slice(0, 100)}...</p>
-              )}
-              {char.createdAt && (
-                <p className="character-date">
-                  Created: {new Date(char.createdAt).toLocaleDateString()}
-                </p>
-              )}
-            </div>
-          );
-        })}
-
-        </div>
-
-
-      </section>
-      {publicCharacters.length > 0 && (
-  <section className="dashboard-section">
-    <h2>All Characters</h2>
-    <div className="character-card-grid">
-        {publicCharacters.map((char) => {
-            let description = "";
-            let startingMessage = "";
+          {myCharacters.map((char) => {
             let imageUrl = DEFAULT_IMAGE_URL;
 
             if (typeof char.prompt === "string") {
               try {
                 const parsed = JSON.parse(char.prompt);
-                description = parsed.description || "";
-                startingMessage = parsed.startingMessage || "";
                 imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
               } catch {
-                description = "";
-                startingMessage = char.prompt;
+                // Use default image
               }
             }
 
             return (
-              <div
+              <img
                 key={char.id}
-                className="character-card"
+                src={imageUrl}
+                alt={char.name}
+                className="my-character-avatar"
+                title={char.name}
                 onClick={() => setActiveBotId(char.id.toString())}
-              >
-                {/* ✅ ADD IMAGE */}
-                <img
-                  src={imageUrl}
-                  alt={char.name}
-                  className="character-image"
-                  onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL }}
-                />
-
-                <div className="character-card-header">
-                  <h3>{char.name}</h3>
-                  <span className="visibility-badge public">Public</span>
-                </div>
-
-                {description && <p className="character-description">{description}</p>}
-                {startingMessage && (
-                  <p className="character-snippet">{startingMessage.slice(0, 100)}...</p>
-                )}
-                {char.createdAt && (
-                  <p className="character-date">
-                    Created: {new Date(char.createdAt).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
+                onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL }}
+              />
             );
           })}
+        </div>
 
-    </div>
-  </section>
-)}
+      </section>
+      
+      {publicCharacters.length > 0 && (
+        <section className="dashboard-section">
+          <h2>All Characters</h2>
+          <div className="character-card-grid">
+              {publicCharacters.map((char) => {
+                  let description = "";
+                  let startingMessage = "";
+                  let imageUrl = DEFAULT_IMAGE_URL;
+
+                  if (typeof char.prompt === "string") {
+                    try {
+                      const parsed = JSON.parse(char.prompt);
+                      description = parsed.description || "";
+                      startingMessage = parsed.startingMessage || "";
+                      imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
+                    } catch {
+                      description = "";
+                      startingMessage = char.prompt;
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={char.id}
+                      className="character-card"
+                      onClick={() => setActiveBotId(char.id.toString())}
+                    >
+                      {/* ✅ ADD IMAGE */}
+                      <img
+                        src={imageUrl}
+                        alt={char.name}
+                        className="character-image"
+                        onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL }}
+                      />
+
+                      <div className="character-card-header">
+                        <h3>{char.name}</h3>
+                        <span className="visibility-badge public">Public</span>
+                      </div>
+
+                      {description && <p className="character-description">{description}</p>}
+                      {startingMessage && (
+                        <p className="character-snippet">{startingMessage.slice(0, 100)}...</p>
+                      )}
+                      {char.createdAt && (
+                        <p className="character-date">
+                          Created: {new Date(char.createdAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+
+          </div>
+        </section>
+      )}
 
 
 
