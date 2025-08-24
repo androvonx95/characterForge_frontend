@@ -62,7 +62,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
         const publicChars = await publicResponse.json();
         setPublicCharacters(publicChars);
         // console.log(publicChars);
-        console.log(myChars);
+        // console.log(myChars);
       } catch (err) {
         setError((err as any).message || 'Failed to fetch characters');
       } finally {

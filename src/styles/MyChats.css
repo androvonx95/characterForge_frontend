@@ -127,7 +127,29 @@
   overflow: hidden;
   text-overflow: ellipsis;   /* Still adds "..." if too long */
 }
+.myChats-cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
 
+.myChats-avatar {
+  width: 3.25rem; /* roughly 52px if base font-size is 16px */
+  height: 3.25rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background-color: #333;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.myChats-avatar {
+  transition: transform 0.2s ease;
+}
+
+.myChats-card:hover .myChats-avatar {
+  transform: scale(1.05);
+}
 /* Last message preview */
 .myChats-lastMessage {
   color: #ccc;
@@ -169,7 +191,10 @@
   .myChats-container {
     padding-top: 80px;
   }
-
+  .myChats-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
   .myChats-title {
     font-size: 1.5rem;
   }

@@ -3,12 +3,14 @@ import supabase from './supabaseClient';
 import { getBotAndLastMessage } from './fetchBotAndLastMessage';
 import './styles/global.css';
 import './styles/MyChats.css'; // Import the CSS styles
-
+import { getCharacterById } from './getCharacterInfo';
 interface ChatDetail {
   id: string;
   botName: string;
   lastMessage: string;
+  imageUrl?: string;
 }
+
 
 export default function MyChats({
   onNavigate,
@@ -18,6 +20,7 @@ export default function MyChats({
   const [chats, setChats] = useState<ChatDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const DEFAULT_IMAGE_URL = 'https://imgs.search.brave.com/pnuCjus6wNu_B0lj4soEUb4KKx9_pn-HorGYVHwBMwY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4t/aWNvbnMtcG5nLmZs/YXRpY29uLmNvbS8x/MjgvMTIyMjUvMTIy/MjU4ODEucG5n';
 
   useEffect(() => {
     async function fetchChats() {
@@ -47,23 +50,49 @@ export default function MyChats({
             try {
               const detail = await getBotAndLastMessage(conv.id);
               const botData = detail?.result?.[0];
+              
+              const characterId = botData?.bot_id;
+              let imageUrl: string | undefined;
+        
+              if (characterId) {
+                const characterData = await getCharacterById(characterId);
+                
+                if (characterData?.character?.prompt) {
+                  let parsedPrompt;
+                  
+                  try {
+                    // Try parsing the prompt as JSON
+                    parsedPrompt = JSON.parse(characterData.character.prompt);
+                    imageUrl = parsedPrompt?.imageUrl || undefined;
+                  } catch (e) {
+                    // If it's not valid JSON, treat it as plain text (legacy bots)
+                    console.warn(`Legacy prompt for bot: ${botData.bot_name}. Using default behavior.`);
+                    imageUrl = DEFAULT_IMAGE_URL; // Or handle as per your requirements (e.g., no image)
+                  }
+                }
+              }
+        
               return {
                 id: conv.id,
-                botName: botData?.bot_name ?? 'Unknown Bot',
-                lastMessage: botData?.last_message_content ?? 'No messages yet',
+                botName: botData?.bot_name?.trim() || 'Unknown Bot',
+                lastMessage: botData?.last_message_content || 'No messages yet',
+                imageUrl,
               };
-            } catch {
+            } catch (error) {
+              console.error('Error fetching chat detail for', conv.id, error);
               return {
                 id: conv.id,
                 botName: 'Unknown Bot',
                 lastMessage: 'No messages yet',
+                imageUrl: DEFAULT_IMAGE_URL,
               };
             }
           })
         );
+        
+        
 
         setChats(detailedChats);
-        console.log(chats);
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -97,7 +126,7 @@ export default function MyChats({
           <p className="myChats-noChats">No chats yet.</p>
         ) : (
           <div className="myChats-list">
-            {chats.map(({ id, botName, lastMessage }) => (
+            {chats.map(({ id, botName, lastMessage, imageUrl }) => (
               <div
                 key={id}
                 role="button"
@@ -111,7 +140,17 @@ export default function MyChats({
                 className="myChats-card"
                 title={`Conversation with ${botName}`}
               >
-                <div className="myChats-botName">{botName}</div>
+                <div className="myChats-cardHeader">
+                  <img
+                    src={imageUrl || DEFAULT_IMAGE_URL}
+                    alt={`${botName}'s avatar`}
+                    className="myChats-avatar"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL;
+                    }}
+                  />
+                  <div className="myChats-botName">{botName}</div>
+                </div>
                 <div className="myChats-lastMessage" title={lastMessage}>
                   {lastMessage || <i>No messages yet</i>}
                 </div>
