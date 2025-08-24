@@ -140,7 +140,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
   return (
     <div className="dashboard-container">
 
-      
+      <button className="primary-button" onClick={() => onNavigate('my-chats')}>My Chats</button>
       <h1 className="dashboard-heading">🎮 Character Dashboard</h1>
       {loading && <p>Loading...</p>}
       {error && <p className="dashboard-error">{error}</p>}
@@ -233,9 +233,9 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
                       </div>
 
                       {description && <p className="character-description">{description}</p>}
-                      {startingMessage && (
+                      {/* {startingMessage && (
                         <p className="character-snippet">{startingMessage.slice(0, 100)}...</p>
-                      )}
+                      )} */}
                       {char.createdAt && (
                         <p className="character-date">
                           Created: {new Date(char.createdAt).toLocaleDateString()}
@@ -338,6 +338,20 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
                   prompt: JSON.stringify(promptObj),
                 },
               ]);
+
+              // If the character is public, also add it to public characters
+              if (!isPrivate) {
+                setPublicCharacters((prev) => [
+                  {
+                    id: result.id || Date.now(),
+                    name: newName,
+                    private: isPrivate,
+                    prompt: JSON.stringify(promptObj),
+                    createdAt: new Date().toISOString(),
+                  },
+                  ...prev,
+                ]);
+              }
 
               // Reset all
               setNewName('');
