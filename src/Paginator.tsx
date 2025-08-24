@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import supabase from './supabaseClient';
 import { type Message } from './types'; 
 import { deleteMessages } from './deleteMsgs';
- 
+
 export default function Paginator({
   conversationId,
   messages,
@@ -25,7 +25,7 @@ export default function Paginator({
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // DELETE MESSAGE (same as before)
+  // DELETE MESSAGE
   const handleDelete = async (idx: number, role: string) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this message and everything below?"
@@ -114,12 +114,12 @@ export default function Paginator({
       alert("Something went wrong while regenerating");
     } finally {
       setIsRegenerating(false);
-      setShowModal(false); // close modal after sending
+      setShowModal(false);
       setInstruction("");
     }
   };
 
-  // FETCH MESSAGES (same as before)
+  // FETCH MESSAGES
   const fetchMessages = async () => {
     setLoading(true);
     try {
@@ -166,24 +166,19 @@ export default function Paginator({
     }
   };
 
-  // Infinite scroll (same as before)
+  // Infinite scroll
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
   
     const handleScroll = () => {
-      // Check if scrolled to the top and more messages are available
       if (container.scrollTop === 0 && hasMore && !loading) {
-        const oldScrollHeight = container.scrollHeight; // Get scroll height before fetch
-        const currentScrollTop = container.scrollTop; // Get current scroll position
+        const oldScrollHeight = container.scrollHeight;
+        const currentScrollTop = container.scrollTop;
   
-        // Fetch new messages
         fetchMessages().then(() => {
-          // After fetching, calculate how much to scroll up to maintain the position
           const newScrollHeight = container.scrollHeight;
           const scrollDifference = newScrollHeight - oldScrollHeight;
-          
-          // Adjust the scroll position after fetching messages
           container.scrollTop = currentScrollTop + scrollDifference;
         });
       }
@@ -201,92 +196,107 @@ export default function Paginator({
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      style={{ height: "400px", overflowY: "auto", border: "1px solid gray", padding: "8px" }}
-    >
-      {messages.map((msg, i) => (
-        <div
-          key={msg.id ?? i}
-          style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
-        >
-          <div>
-            <strong>{msg.role}:</strong> {msg.content}
+    <>
+      <div ref={containerRef} className="chat-container">
+        {loading && messages.length === 0 && (
+          <div className="loading-indicator">
+            <span>Loading messages...</span>
+            <div className="loading-dots">
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+            </div>
           </div>
-          {/* Delete and Regenerate buttons */}
-          <div style={{ display: "flex", gap: "4px" }}>
-            <button
-              style={{ fontSize: "0.8rem", padding: "2px 6px" }}
-              onClick={() => handleDelete(msg.idx!, msg.role)}
-              disabled={deletingIds.has(msg.idx!)}
-            >
-              {deletingIds.has(msg.idx!) ? "Deleting..." : "Delete"}
-            </button>
+        )}
+        
+        {error && <div className="error-message">Error: {error}</div>}
 
-            {i === messages.length - 1 && msg.role === "character" && (
-              <>
-                <button
-                  onClick={() => handleRegenerate()}
-                  disabled={isRegenerating}
-                  style={{ fontSize: "0.8rem", padding: "2px 6px" }}
-                >
-                  {isRegenerating ? "Regenerating..." : "Regenerate"}
-                </button>
-
-                <button
-                  onClick={() => setShowModal(true)}
-                  style={{ fontSize: "0.8rem", padding: "2px 6px" }}
-                >
-                  Regenerate with Instruction
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      ))}
-
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
-
-      {/* Modal */}
-      {showModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0,0,0,0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-          }}
-          onClick={() => setShowModal(false)}
-        >
+        {messages.map((msg, i) => (
           <div
-            style={{ background: "white", padding: "20px", borderRadius: "8px", minWidth: "300px" }}
-            onClick={(e) => e.stopPropagation()} // prevent modal close on inner click
+            key={msg.id ?? i}
+            className={`message-wrapper ${msg.role}`}
           >
-            <h3>Regenerate with Instruction</h3>
+            <div className={`message-bubble ${msg.role}`}>
+              {msg.content}
+              
+              {/* Message actions - show on hover */}
+              <div className="message-actions">
+                <button
+                  className="action-btn delete"
+                  onClick={() => handleDelete(msg.idx!, msg.role)}
+                  disabled={deletingIds.has(msg.idx!)}
+                  title="Delete message"
+                >
+                  {deletingIds.has(msg.idx!) ? "Deleting..." : "Delete"}
+                </button>
+
+                {/* Show regenerate options only for last character message */}
+                {i === messages.length - 1 && msg.role === "character" && (
+                  <>
+                    <button
+                      onClick={() => handleRegenerate()}
+                      disabled={isRegenerating}
+                      className="action-btn regenerate"
+                      title="Regenerate message"
+                    >
+                      {isRegenerating ? "Regenerating..." : "Regenerate"}
+                    </button>
+
+                    <button
+                      onClick={() => setShowModal(true)}
+                      className="action-btn"
+                      title="Regenerate with custom instruction"
+                    >
+                      Custom
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {loading && messages.length > 0 && (
+          <div className="loading-indicator">
+            <span>Loading more messages...</span>
+            <div className="loading-dots">
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Regeneration Modal */}
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modal-title">Regenerate with Instruction</h3>
             <textarea
               value={instruction}
               onChange={(e) => setInstruction(e.target.value)}
-              style={{ width: "100%", height: "80px" }}
+              placeholder="Enter your instruction for regeneration..."
+              className="modal-textarea"
             />
-            <div style={{ marginTop: "10px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-              <button onClick={() => setShowModal(false)}>Cancel</button>
+            <div className="modal-actions">
+              <button 
+                onClick={() => setShowModal(false)}
+                className="modal-btn cancel"
+              >
+                Cancel
+              </button>
               <button
                 onClick={() => handleRegenerate(instruction)}
                 disabled={isRegenerating}
+                className="modal-btn primary"
               >
-                {isRegenerating ? "Regenerating..." : "Send"}
+                {isRegenerating ? "Regenerating..." : "Regenerate"}
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

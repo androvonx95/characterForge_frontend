@@ -4,7 +4,7 @@ import Paginator from './Paginator';
 import { sendAiMessage } from './aiChat';
 import type { Message } from './types';
 import { getBotAndLastMessage } from './fetchBotAndLastMessage';
-import './styles/chatUI.css'; // Import the CSS
+import './styles/chatUI.css';
 
 interface ConversationProps {
   conversationId: string;
@@ -71,22 +71,43 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
     setInput('');
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
+  // Get bot initials for avatar
+  const getBotInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
-    <div className="chat-container">
-      {/* Bot Info Header */}
-      {botInfo && (
-        <div className="bot-info-header">
-          <h2 className="bot-name">{botInfo.bot_name}</h2>
-          <p className="bot-description">{botInfo.bot_prompt.description}</p>
+    <div className="chat-wrapper">
+      {/* Header with bot info */}
+      <div className="chat-header">
+        <div className="bot-avatar">
+          {botInfo ? getBotInitials(botInfo.bot_name) : '?'}
         </div>
-      )}
+        <div className="bot-info">
+          <h1 className="bot-name">{botInfo?.bot_name || 'Loading...'}</h1>
+          <p className="bot-description">
+            {botInfo?.bot_prompt?.description || ""}
+          </p>
+        </div>
+        <button 
+          onClick={() => onNavigate('my-chats')} 
+          className="back-btn-header"
+        >
+          ← Back
+        </button>
+      </div>
 
       {/* Messages Container */}
       <Paginator 
@@ -95,27 +116,50 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
         setMessages={setMessages} 
       />
 
+      {/* Loading indicator */}
+      {loading && (
+        <div className="loading-indicator">
+          <span>AI is thinking</span>
+          <div className="loading-dots">
+            <div className="loading-dot"></div>
+            <div className="loading-dot"></div>
+            <div className="loading-dot"></div>
+          </div>
+        </div>
+      )}
+
+      {/* Error message */}
+      {error && <div className="error-message">{error}</div>}
+
       {/* Input Container */}
       <div className="input-container">
-        <input
-          type="text"
+        <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Type your message..."
+          placeholder="Type a message..."
           disabled={loading}
           className="message-input"
+          rows={1}
+          style={{
+            height: 'auto',
+            minHeight: '48px',
+            maxHeight: '120px',
+          }}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = 'auto';
+            target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
+          }}
         />
-        <button onClick={handleSend} disabled={loading} className="send-btn">
+        <button 
+          onClick={handleSend} 
+          disabled={loading || !input.trim()} 
+          className="send-btn"
+        >
           {loading ? 'Sending...' : 'Send'}
         </button>
       </div>
-
-      {error && <div className="error-message">{error}</div>}
-      
-      <button onClick={() => onNavigate('my-chats', conversationId)} className="back-btn">
-        ← Back to Chats
-      </button>
     </div>
   );
 }
