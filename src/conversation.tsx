@@ -24,6 +24,16 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
     const botData = await getBotAndLastMessage(conversationId);
     setBotInfo(botData?.result[0]);
   };
+  let imageUrl = 'https://imgs.search.brave.com/pnuCjus6wNu_B0lj4soEUb4KKx9_pn-HorGYVHwBMwY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4t/aWNvbnMtcG5nLmZs/YXRpY29uLmNvbS8x/MjgvMTIyMjUvMTIy/MjU4ODEucG5n';
+  try{
+    const botPrompt = JSON.parse(botInfo?.bot_prompt || '{}');
+    imageUrl = botPrompt?.imageUrl || '/fallback.png'; // Default to fallback if no imageUrl is found
+    
+  }catch(err){
+    console.log("Profile url not found");
+    console.log(err);
+  }
+  console.log(imageUrl);
 
   useEffect(() => {
     fetchBotDetails();
@@ -93,14 +103,25 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
       .toUpperCase()
       .slice(0, 2);
   };
-
   return (
     <div className="chat-wrapper">
       {/* Header with bot info */}
       <div className="chat-header">
-        <div className="bot-avatar">
-          {botInfo ? getBotInitials(botInfo.bot_name) : '?'}
-        </div>
+      <div className="bot-avatar">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={botInfo?.bot_name || 'Bot'}
+            className="bot-avatar-image"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'https://imgs.search.brave.com/pnuCjus6wNu_B0lj4soEUb4KKx9_pn-HorGYVHwBMwY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4t/aWNvbnMtcG5nLmZs/YXRpY29uLmNvbS8x/MjgvMTIyMjUvMTIy/MjU4ODEucG5n'; // Optional fallback
+            }}
+          />
+        ) : (
+          getBotInitials(botInfo?.bot_name || '')
+        )}
+      </div>
+
         <div className="bot-info">
           <h1 className="bot-name">{botInfo?.bot_name || 'Loading...'}</h1>
           <p className="bot-description">

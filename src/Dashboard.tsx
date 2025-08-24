@@ -5,8 +5,10 @@ import LazyBotIntro from './useLazyMessages';
 import Conversation from './conversation';
 import './styles/Dashboard.css';
 import './styles/global.css';
+import { getSignedUploadUrl, uploadFileToS3 } from './getSignedUploadUrl';
 
 export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void }) {
+  const DEFAULT_IMAGE_URL = "https://imgs.search.brave.com/SlAHcvHF1G6DX8aNn-45OSpTEyTI2Zy4Mr-DzvMrOyw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzk3LzM4/L2JkLzk3MzhiZGQy/NjU4YWY2MzczODdk/ZDUxNDRlM2FjNTI4/LmpwZw"
   const [myCharacters, setMyCharacters] = useState<any[]>([]);
   const [publicCharacters, setPublicCharacters] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +24,12 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
   const [activeBotId, setActiveBotId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+
+  // Add state for the image
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
 
   useEffect(() => {
     const getCharacters = async () => {
@@ -146,18 +154,77 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
 
 
         <div className="character-card-grid">
-          {myCharacters.map((char) => {
+        {myCharacters.map((char) => {
+          let description = "";
+          let startingMessage = "";
+          let imageUrl = DEFAULT_IMAGE_URL;
+
+          if (typeof char.prompt === "string") {
+            try {
+              const parsed = JSON.parse(char.prompt);
+              description = parsed.description || "";
+              startingMessage = parsed.startingMessage || "";
+              imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
+            } catch {
+              description = "";
+              startingMessage = char.prompt;
+            }
+          }
+
+          return (
+            <div
+              key={char.id}
+              className="character-card"
+              onClick={() => setActiveBotId(char.id.toString())}
+            >
+              {/* 👇 Character Image */}
+              <img
+                src={imageUrl}
+                alt={char.name}
+                className="character-image"
+                onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL }}
+              />
+
+              <div className="character-card-header">
+                <h3>{char.name}</h3>
+                <span className={`visibility-badge ${char.private ? "private" : "public"}`}>
+                  {char.private ? "Private" : "Public"}
+                </span>
+              </div>
+
+              {description && <p className="character-description">{description}</p>}
+              {startingMessage && (
+                <p className="character-snippet">{startingMessage.slice(0, 100)}...</p>
+              )}
+              {char.createdAt && (
+                <p className="character-date">
+                  Created: {new Date(char.createdAt).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          );
+        })}
+
+        </div>
+
+
+      </section>
+      {publicCharacters.length > 0 && (
+  <section className="dashboard-section">
+    <h2>All Characters</h2>
+    <div className="character-card-grid">
+        {publicCharacters.map((char) => {
             let description = "";
             let startingMessage = "";
+            let imageUrl = DEFAULT_IMAGE_URL;
 
             if (typeof char.prompt === "string") {
               try {
-                // Try parsing prompt as JSON
                 const parsed = JSON.parse(char.prompt);
                 description = parsed.description || "";
                 startingMessage = parsed.startingMessage || "";
+                imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
               } catch {
-                // If parsing fails, treat prompt as plain string
                 description = "";
                 startingMessage = char.prompt;
               }
@@ -169,12 +236,19 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
                 className="character-card"
                 onClick={() => setActiveBotId(char.id.toString())}
               >
+                {/* ✅ ADD IMAGE */}
+                <img
+                  src={imageUrl}
+                  alt={char.name}
+                  className="character-image"
+                  onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL }}
+                />
+
                 <div className="character-card-header">
                   <h3>{char.name}</h3>
-                  <span className={`visibility-badge ${char.private ? "private" : "public"}`}>
-                    {char.private ? "Private" : "Public"}
-                  </span>
+                  <span className="visibility-badge public">Public</span>
                 </div>
+
                 {description && <p className="character-description">{description}</p>}
                 {startingMessage && (
                   <p className="character-snippet">{startingMessage.slice(0, 100)}...</p>
@@ -187,51 +261,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
               </div>
             );
           })}
-        </div>
 
-
-      </section>
-      {publicCharacters.length > 0 && (
-  <section className="dashboard-section">
-    <h2>All Characters</h2>
-    <div className="character-card-grid">
-      {publicCharacters.map((char) => {
-        let description = "";
-        let startingMessage = "";
-
-        if (typeof char.prompt === "string") {
-          try {
-            const parsed = JSON.parse(char.prompt);
-            description = parsed.description || "";
-            startingMessage = parsed.startingMessage || "";
-          } catch {
-            description = "";
-            startingMessage = char.prompt;
-          }
-        }
-
-        return (
-          <div
-            key={char.id}
-            className="character-card"
-            onClick={() => setActiveBotId(char.id.toString())}
-          >
-            <div className="character-card-header">
-              <h3>{char.name}</h3>
-              <span className="visibility-badge public">Public</span>
-            </div>
-            {description && <p className="character-description">{description}</p>}
-            {startingMessage && (
-              <p className="character-snippet">{startingMessage.slice(0, 100)}...</p>
-            )}
-            {char.createdAt && (
-              <p className="character-date">
-                Created: {new Date(char.createdAt).toLocaleDateString()}
-              </p>
-            )}
-          </div>
-        );
-      })}
     </div>
   </section>
 )}
@@ -239,27 +269,117 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
 
 
 
+{showModal && (
+  <div className="modal-overlay">
+    <div className="modal">
+      <h3>Create a New Character</h3>
+      <input
+        className="modal-input"
+        placeholder="Character Name"
+        value={newName}
+        onChange={(e) => setNewName(e.target.value)}
+      />
+      <textarea
+        className="modal-textarea"
+        placeholder="Character Description"
+        value={newDescription}
+        onChange={(e) => setNewDescription(e.target.value)}
+      />
+      <textarea
+        className="modal-textarea"
+        placeholder="Starting Message"
+        value={newStartingMessage}
+        onChange={(e) => setNewStartingMessage(e.target.value)}
+      />
 
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Create a New Character</h3>
-            <input className="modal-input" placeholder="Character Name" value={newName} onChange={(e) => setNewName(e.target.value)} />
-            <textarea className="modal-textarea" placeholder="Character Description" value={newDescription} onChange={(e) => setNewDescription(e.target.value)} />
-            <textarea className="modal-textarea" placeholder="Starting Message" value={newStartingMessage} onChange={(e) => setNewStartingMessage(e.target.value)} />
-            <label className="checkbox-label">
-              <input type="checkbox" checked={isPrivate} onChange={() => setIsPrivate(p => !p)} />
-              {' '}Private
-            </label>
-            <div className="modal-actions">
-              <button className="primary-button" disabled={creating} onClick={handleCreateCharacter}>
-                {creating ? "Creating..." : "Create"}
-              </button>
-              <button className="cancel-button" onClick={() => setShowModal(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 👇 Image Upload */}
+      <div style={{ marginTop: '1rem' }}>
+        <label className="checkbox-label">Upload Character Image</label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+        />
+        {uploadingImage && <p>Uploading image...</p>}
+        {imageUrl && <p style={{ fontSize: '0.9em' }}>✅ Uploaded</p>}
+      </div>
+
+      <label className="checkbox-label">
+        <input
+          type="checkbox"
+          checked={isPrivate}
+          onChange={() => setIsPrivate((p) => !p)}
+        />
+        {' '}Private
+      </label>
+
+      <div className="modal-actions">
+        <button
+          className="primary-button"
+          disabled={creating || uploadingImage}
+          onClick={async () => {
+            setCreating(true);
+            try {
+              let uploadedUrl: string | null = imageUrl;
+
+              if (imageFile && !uploadedUrl) {
+                setUploadingImage(true);
+                const res = await getSignedUploadUrl(imageFile.name, imageFile.type);
+                if (!res) throw new Error("Could not get signed upload URL");
+
+                const success = await uploadFileToS3(res.signedUrl, imageFile);
+                if (!success) throw new Error("Failed to upload image");
+
+                uploadedUrl = res.fileUrl;
+                setImageUrl(uploadedUrl);
+              }
+
+              const promptObj = {
+                description: newDescription,
+                startingMessage: newStartingMessage,
+                imageUrl: uploadedUrl, // 👈 include uploaded image URL
+              };
+              console.log("Prompt Object:", promptObj);
+              const result = await createCharacter({
+                name: newName,
+                prompt: JSON.stringify(promptObj),
+                private: isPrivate,
+              });
+
+              setMyCharacters((prev) => [
+                ...prev,
+                {
+                  id: result.id || Date.now(),
+                  name: newName,
+                  private: isPrivate,
+                  prompt: JSON.stringify(promptObj),
+                },
+              ]);
+
+              // Reset all
+              setNewName('');
+              setNewDescription('');
+              setNewStartingMessage('');
+              setImageFile(null);
+              setImageUrl(null);
+              setIsPrivate(true);
+              setShowModal(false);
+            } catch (err: any) {
+              alert(err.message || "Failed to create character");
+            } finally {
+              setCreating(false);
+              setUploadingImage(false);
+            }
+          }}
+        >
+          {creating ? "Creating..." : "Create"}
+        </button>
+        <button className="cancel-button" onClick={() => setShowModal(false)}>Cancel</button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

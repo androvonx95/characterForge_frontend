@@ -63,6 +63,7 @@ export default function MyChats({
         );
 
         setChats(detailedChats);
+        console.log(chats);
       } catch (err) {
         setError((err as Error).message);
       } finally {

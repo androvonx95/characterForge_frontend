@@ -181,6 +181,14 @@
     cursor: pointer;
     transition: transform 0.2s ease, border-color 0.2s ease;
   }
+  .character-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    background-color: #222;
+  }
   
   .character-card:hover {
     transform: translateY(-3px);
