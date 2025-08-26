@@ -8,11 +8,12 @@ type CharacterPreviewProps = {
   name: string;
   description: string;
   imageUrl: string;
+  private: boolean;
   onClose: () => void;
   onDelete: ( deletedId: string ) => void;
 };
 
-export default function CharacterPreviewModal({ id, name, description, imageUrl, onClose, onDelete }: CharacterPreviewProps) {
+export default function CharacterPreviewModal({ id, name, description, imageUrl, private: isPrivate, onClose, onDelete }: CharacterPreviewProps) {
     
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -27,8 +28,12 @@ export default function CharacterPreviewModal({ id, name, description, imageUrl,
   
           <img src={imageUrl} alt={name} className="character-preview-image" />
           <h2>{name}</h2>
+          {/* NEW: Private Status */}
+          <p className={`character-private-status ${isPrivate ? 'private' : 'public'}`}>
+            {isPrivate ? '🔒 Private' : '🌐 Public'}
+            </p>
           <p className="character-preview-description">{description}</p>
-  
+
           <div className="modal-button-group">
           <button
             className="primary-button delete-button"

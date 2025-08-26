@@ -37,6 +37,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
   const [previewCharacter, setPreviewCharacter] = useState<null | {
     id: string;
     name: string;
+    private: boolean;
     description: string;
     imageUrl: string;
   }>(null);
@@ -211,6 +212,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
                   setPreviewCharacter({
                     id: char.id,
                     name: char.name,
+                    private: char.private,
                     description,
                     imageUrl,
                   });
@@ -234,6 +236,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
             name={previewCharacter.name}
             description={previewCharacter.description}
             imageUrl={previewCharacter.imageUrl}
+            private={previewCharacter.private}
             onClose={() => setPreviewCharacter(null)}
             onDelete={(id) => {
               setMyCharacters((prev) => prev.filter((char) => char.id !== id));
