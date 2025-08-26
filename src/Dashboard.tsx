@@ -9,6 +9,8 @@ import CharacterPreviewModal from './components/CharacterPreviewModal';
 
 import { getSignedUploadUrl, uploadFileToS3 } from './getSignedUploadUrl';
 import React from 'react';
+import { useRealtimeCharacterSync } from './useRealtimeCharacterSync';
+
 
 export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void }) {
   const DEFAULT_IMAGE_URL = "https://imgs.search.brave.com/SlAHcvHF1G6DX8aNn-45OSpTEyTI2Zy4Mr-DzvMrOyw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzk3LzM4/L2JkLzk3MzhiZGQy/NjU4YWY2MzczODdk/ZDUxNDRlM2FjNTI4/LmpwZw"
@@ -33,7 +35,10 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-
+  // const [publicCharacters, setPublicCharacters] = useState<any[]>([]);
+  // const [token, setToken] = useState<string | null>(null);
+  
+  useRealtimeCharacterSync(token, setPublicCharacters);
   const [previewCharacter, setPreviewCharacter] = useState<null | {
     id: string;
     name: string;
