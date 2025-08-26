@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import supabase from './supabaseClient';
 import { getBotAndLastMessage } from './fetchBotAndLastMessage';
+import { deleteEntity } from './deleteCharOrConv';
+import { getEntityDeletionDetails } from './getEntityDeletionInfo';
 import './styles/global.css';
 import './styles/MyChats.css'; // Import the CSS styles
 import { getCharacterById } from './getCharacterInfo';
@@ -125,37 +127,61 @@ export default function MyChats({
         {!loading && !error && chats.length === 0 ? (
           <p className="myChats-noChats">No chats yet.</p>
         ) : (
+          
           <div className="myChats-list">
+
+
             {chats.map(({ id, botName, lastMessage, imageUrl }) => (
-              <div
-                key={id}
-                role="button"
-                tabIndex={0}
-                onClick={() => onNavigate('conversation', id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    onNavigate('conversation', id);
-                  }
-                }}
-                className="myChats-card"
-                title={`Conversation with ${botName}`}
-              >
-                <div className="myChats-cardHeader">
-                  <img
-                    src={imageUrl || DEFAULT_IMAGE_URL}
-                    alt={`${botName}'s avatar`}
-                    className="myChats-avatar"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL;
-                    }}
-                  />
-                  <div className="myChats-botName">{botName}</div>
+
+
+              <div className="myChats-cardWrapper"> 
+                
+                <div
+                  key={id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onNavigate('conversation', id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      onNavigate('conversation', id);
+                    }
+                  }}
+                  className="myChats-card"
+                  title={`Conversation with ${botName}`}
+                >
+                  <div className="myChats-cardHeader">
+                    <img
+                      src={imageUrl || DEFAULT_IMAGE_URL}
+                      alt={`${botName}'s avatar`}
+                      className="myChats-avatar"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL;
+                      }}
+                    />
+                    <div className="myChats-botName">{botName}</div>
+                  </div>
+                  <div className="myChats-lastMessage" title={lastMessage}>
+                    {lastMessage || <i>No messages yet</i>}
+                  </div>
+                  <small className="myChats-conversationId">Conversation ID: {id}</small>
                 </div>
-                <div className="myChats-lastMessage" title={lastMessage}>
-                  {lastMessage || <i>No messages yet</i>}
-                </div>
-                <small className="myChats-conversationId">Conversation ID: {id}</small>
+              
+                <button className="myChats-deleteBtn" 
+                  onClick={async () => {
+                    try {
+                      // Delete the entity
+                      await deleteEntity({ entity_id: id, entity_type: 'conversation' });
+                
+                      // Immediately remove the deleted conversation from the state
+                      setChats((prevChats) => prevChats.filter((chat) => chat.id !== id));
+                    } catch (error) {
+                      console.error('Error deleting conversation:', error);
+                    }
+                  }}>
+                  &#x1F5D1;</button>
+
               </div>
+              
             ))}
           </div>
         )}

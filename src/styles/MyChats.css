@@ -186,6 +186,71 @@
   color: #ff6666;
 }
 
+
+.myChats-deleteBtn {
+  background-color: #e74c3c;  /* A red color for the delete button */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;  /* Smooth transition for hover effect */
+  display: inline-block;
+  text-align: center;
+}
+
+.myChats-deleteBtn:hover {
+  background-color: #c0392b;  /* Darker red when hovered */
+  transform: translateY(-2px);  /* Slight lift effect on hover */
+}
+
+.myChats-deleteBtn:active {
+  background-color: #e74c3c;  /* Keep the original red color when pressed */
+  transform: translateY(0);  /* No lift effect when clicked */
+}
+
+.myChats-deleteBtn:focus {
+  outline: none;  /* Remove default focus outline */
+  box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);  /* Add a focus shadow effect */
+}
+
+
+
+/* Positioning the outermost div to be relative so we can position the button inside it */
+.myChats-cardWrapper {
+  position: relative;  /* This will act as the positioning reference for the delete button */
+}
+
+/* Style for the Delete button */
+.myChats-deleteBtn {
+  background-color: transparent;  /* Make it transparent to show the icon */
+  color: #e74c3c;  /* Red color for the trash icon */
+  font-size: 1.5rem;  /* Icon size */
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s ease, color 0.3s ease;
+  position: absolute;  /* Positioning the button in the top-right */
+  top: 12px;  /* Space from the top */
+  right: 12px;  /* Space from the right edge */
+  z-index: 1;  /* Ensure it's above the content */
+}
+
+.myChats-deleteBtn:hover {
+  color: #c0392b;  /* Darker red when hovered */
+  transform: scale(1.1);  /* Slight scale-up effect on hover */
+}
+
+.myChats-deleteBtn:focus {
+  outline: none;  /* Remove default outline */
+  box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);  /* Soft glow effect when focused */
+}
+
+
+
+
 /* Mobile responsiveness */
 @media (max-width: 600px) {
   .myChats-container {
@@ -209,3 +274,5 @@
     padding: 0.75rem 1rem;
   }
 }
+
+

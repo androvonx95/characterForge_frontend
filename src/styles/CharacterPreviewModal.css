@@ -1,0 +1,78 @@
+/* styles/CharacterPreviewModal.css */
+.character-preview-modal {
+    background-color: #1e1e1e;
+    border-radius: 12px;
+    padding: 20px;
+    width: 400px;
+    max-width: 90vw;
+    text-align: center;
+    color: white;
+    box-shadow: 0 0 10px #000;
+    position: relative;
+  }
+  
+  .character-preview-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .character-preview-description {
+    font-size: 1rem;
+    margin: 1rem 0;
+  }
+  
+  .mybot-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+
+  .modal-button-group {
+    display: flex;
+    justify-content: center;
+    gap: 1rem; /* 👈 Adds spacing between buttons */
+    margin-top: 1.5rem;
+  }
+  
+  /* Optional: Different style for Delete button */
+  .delete-button {
+    background-color: var(--error-color);
+  }
+  
+  .delete-button:hover {
+    background-color: #ff1a1a;
+  }
+  .modal-close-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background-color: rgba(0, 0, 0, 0.6); /* subtle dark background */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px; /* small rectangle */
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 2px 8px;
+    cursor: pointer;
+    z-index: 2;
+    transition: background-color 0.2s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+
+  }
+  
+  .modal-close-button:hover {
+    background-color: rgba(255, 0, 0, 0.8);
+    color: white;
+  }
+  
+  

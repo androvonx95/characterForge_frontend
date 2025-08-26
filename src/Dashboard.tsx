@@ -5,7 +5,10 @@ import LazyBotIntro from './useLazyMessages';
 import Conversation from './conversation';
 import './styles/Dashboard.css';
 import './styles/global.css';
+import CharacterPreviewModal from './components/CharacterPreviewModal';
+
 import { getSignedUploadUrl, uploadFileToS3 } from './getSignedUploadUrl';
+import React from 'react';
 
 export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void }) {
   const DEFAULT_IMAGE_URL = "https://imgs.search.brave.com/SlAHcvHF1G6DX8aNn-45OSpTEyTI2Zy4Mr-DzvMrOyw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzk3LzM4/L2JkLzk3MzhiZGQy/NjU4YWY2MzczODdk/ZDUxNDRlM2FjNTI4/LmpwZw"
@@ -29,6 +32,14 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+
+  const [previewCharacter, setPreviewCharacter] = useState<null | {
+    id: string;
+    name: string;
+    description: string;
+    imageUrl: string;
+  }>(null);
 
 
   useEffect(() => {
@@ -154,41 +165,84 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
           <button className="primary-button" onClick={() => setShowModal(true)}>+ Create Bot</button>
         </div>
 
-        {/* NEW: Horizontal bar layout for My Characters */}
-        <div className="my-characters-bar">
-          <span className="my-characters-label">YOUR BOTS</span>
-          
-          <div 
-            className="create-bot-circle" 
-            onClick={() => setShowModal(true)}
-            title="Create Bot"
-          ></div>
+      {/* NEW: Horizontal bar layout for My Characters */}
+      <div className="my-characters-bar">
+        <span className="my-characters-label">YOUR BOTS</span>
 
-          {myCharacters.map((char) => {
-            let imageUrl = DEFAULT_IMAGE_URL;
+        <div 
+          className="create-bot-circle" 
+          onClick={() => setShowModal(true)}
+          title="Create Bot"
+        ></div>
 
-            if (typeof char.prompt === "string") {
-              try {
-                const parsed = JSON.parse(char.prompt);
-                imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
-              } catch {
-                // Use default image
-              }
+        {myCharacters.map((char) => {
+          let imageUrl = DEFAULT_IMAGE_URL;
+
+          if (typeof char.prompt === "string") {
+            try {
+              const parsed = JSON.parse(char.prompt);
+              imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
+            } catch {
+              // Use default image
             }
+          }
 
-            return (
+          return (
+            <div key={char.id} className="my-character-avatar-wrapper">
               <img
-                key={char.id}
                 src={imageUrl}
                 alt={char.name}
                 className="my-character-avatar"
                 title={char.name}
-                onClick={() => setActiveBotId(char.id.toString())}
-                onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL }}
+                onClick={() => {
+                  let imageUrl = DEFAULT_IMAGE_URL;
+                  let description = '';
+                  console.log( char );
+                  if (typeof char.prompt === "string") {
+                    try {
+                      const parsed = JSON.parse(char.prompt);
+                      imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
+                      description = parsed.description || '';
+                    } catch {
+                      // fallback
+                    }
+                  }
+
+                  setPreviewCharacter({
+                    id: char.id,
+                    name: char.name,
+                    description,
+                    imageUrl,
+                  });
+                  console.log(char);
+                }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL;
+                }}
               />
-            );
-          })}
-        </div>
+              <span className="my-character-name" title={char.name}>
+                {char.name}
+              </span>
+            </div>
+          );
+        })}
+
+        {/* ✅ Modal rendered once, after the loop */}
+        {previewCharacter && (
+          <CharacterPreviewModal
+            id={previewCharacter.id}
+            name={previewCharacter.name}
+            description={previewCharacter.description}
+            imageUrl={previewCharacter.imageUrl}
+            onClose={() => setPreviewCharacter(null)}
+            onDelete={(id) => {
+              setMyCharacters((prev) => prev.filter((char) => char.id !== id));
+              setPreviewCharacter(null);
+            }}
+          />
+        )}
+      </div>
+
 
       </section>
       
