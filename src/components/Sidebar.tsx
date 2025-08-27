@@ -9,7 +9,7 @@ import {
   Settings,
   Menu as MenuIcon
 } from "lucide-react"
-import "./sidebar.css" // Optional: for custom styling
+import "../styles/sidebar.css" // Optional: for custom styling
 
 const items = [
   { title: "Home", icon: <Home size={18} />, href: "#" },
