@@ -5,6 +5,7 @@ import { ThemeMinimal } from '@supabase/auth-ui-shared';
 import Dashboard from './Dashboard';
 import MyChats from './myChats';
 import Conversation from './conversation';
+import { SidebarProvider } from './components/SidebarProvider';
 
 // Custom futuristic dark theme for the auth UI with pink accents
 const customTheme = {
@@ -303,8 +304,12 @@ export default function App() {
 
   return (
     <div>
-      {page === 'dashboard' && <Dashboard onNavigate={handleNavigate} />}
-      {page === 'my-chats' && <MyChats onNavigate={handleNavigate} />}
+      {page === 'dashboard' && 
+      <SidebarProvider>
+        <Dashboard onNavigate={handleNavigate} />
+      </SidebarProvider>
+      }
+      {page === 'my-chats' && <SidebarProvider><MyChats onNavigate={handleNavigate} /></SidebarProvider>}
       {page === 'conversation' && selectedConversationId && (
         <Conversation 
           onNavigate={handleNavigate} 

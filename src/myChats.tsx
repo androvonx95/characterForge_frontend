@@ -6,13 +6,16 @@ import { getEntityDeletionDetails } from './getEntityDeletionInfo';
 import './styles/global.css';
 import './styles/MyChats.css'; // Import the CSS styles
 import { getCharacterById } from './getCharacterInfo';
+// Import sidebar components
+import { Sidebar } from './components/Sidebar';
+import { useSidebar } from './components/SidebarProvider';
+
 interface ChatDetail {
   id: string;
   botName: string;
   lastMessage: string;
   imageUrl?: string;
 }
-
 
 export default function MyChats({
   onNavigate,
@@ -23,6 +26,9 @@ export default function MyChats({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const DEFAULT_IMAGE_URL = 'https://imgs.search.brave.com/pnuCjus6wNu_B0lj4soEUb4KKx9_pn-HorGYVHwBMwY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4t/aWNvbnMtcG5nLmZs/YXRpY29uLmNvbS8x/MjgvMTIyMjUvMTIy/MjU4ODEucG5n';
+
+  // Get sidebar state for responsive layout
+  const { isOpen } = useSidebar();
 
   useEffect(() => {
     async function fetchChats() {
@@ -92,8 +98,6 @@ export default function MyChats({
           })
         );
         
-        
-
         setChats(detailedChats);
       } catch (err) {
         setError((err as Error).message);
@@ -106,86 +110,88 @@ export default function MyChats({
   }, []);
 
   return (
-    <div className="myChats-container">
-      <header className="myChats-header">
-        <div className="myChats-header-content">
-          <button
-            onClick={() => onNavigate('dashboard')}
-            className="myChats-dashboardBtn"
-            aria-label="Go to dashboard"
-          >
-            Dashboard
-          </button>
-          <h1 className="myChats-title">My Chats</h1>
-        </div>
-      </header>
+    <div className="app-layout">
+      <Sidebar onNavigate={onNavigate} currentPage="my-chats" />
+      <main className={`main-content ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
+        <div className="myChats-container">
+          <header className="myChats-header">
+            <div className="myChats-header-content">
+              {/* <button
+                onClick={() => onNavigate('dashboard')}
+                className="myChats-dashboardBtn"
+                aria-label="Go to dashboard"
+              >
+                Dashboard
+              </button> */}
+              <h1 className="myChats-title">My Chats</h1>
+            </div>
+          </header>
 
-      <div className="myChats-content">
-        {loading && <p className="myChats-loading">Loading chats...</p>}
-        {error && <p className="myChats-error">Error: {error}</p>}
-        
-        {!loading && !error && chats.length === 0 ? (
-          <p className="myChats-noChats">No chats yet.</p>
-        ) : (
-          
-          <div className="myChats-list">
+          <div className="myChats-content">
+            {loading && <p className="myChats-loading">Loading chats...</p>}
+            {error && <p className="myChats-error">Error: {error}</p>}
+            
+            {!loading && !error && chats.length === 0 ? (
+              <p className="myChats-noChats">No chats yet.</p>
+            ) : (
+              
+              <div className="myChats-list">
 
+                {chats.map(({ id, botName, lastMessage, imageUrl }) => (
 
-            {chats.map(({ id, botName, lastMessage, imageUrl }) => (
-
-
-              <div className="myChats-cardWrapper"> 
-                
-                <div
-                  key={id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onNavigate('conversation', id)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      onNavigate('conversation', id);
-                    }
-                  }}
-                  className="myChats-card"
-                  title={`Conversation with ${botName}`}
-                >
-                  <div className="myChats-cardHeader">
-                    <img
-                      src={imageUrl || DEFAULT_IMAGE_URL}
-                      alt={`${botName}'s avatar`}
-                      className="myChats-avatar"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL;
+                  <div className="myChats-cardWrapper" key={id}> 
+                    
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => onNavigate('conversation', id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          onNavigate('conversation', id);
+                        }
                       }}
-                    />
-                    <div className="myChats-botName">{botName}</div>
-                  </div>
-                  <div className="myChats-lastMessage" title={lastMessage}>
-                    {lastMessage || <i>No messages yet</i>}
-                  </div>
-                  <small className="myChats-conversationId">Conversation ID: {id}</small>
-                </div>
-              
-                <button className="myChats-deleteBtn" 
-                  onClick={async () => {
-                    try {
-                      // Delete the entity
-                      await deleteEntity({ entity_id: id, entity_type: 'conversation' });
-                
-                      // Immediately remove the deleted conversation from the state
-                      setChats((prevChats) => prevChats.filter((chat) => chat.id !== id));
-                    } catch (error) {
-                      console.error('Error deleting conversation:', error);
-                    }
-                  }}>
-                  &#x1F5D1;</button>
+                      className="myChats-card"
+                      title={`Conversation with ${botName}`}
+                    >
+                      <div className="myChats-cardHeader">
+                        <img
+                          src={imageUrl || DEFAULT_IMAGE_URL}
+                          alt={`${botName}'s avatar`}
+                          className="myChats-avatar"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL;
+                          }}
+                        />
+                        <div className="myChats-botName">{botName}</div>
+                      </div>
+                      <div className="myChats-lastMessage" title={lastMessage}>
+                        {lastMessage || <i>No messages yet</i>}
+                      </div>
+                      <small className="myChats-conversationId">Conversation ID: {id}</small>
+                    </div>
+                  
+                    <button className="myChats-deleteBtn" 
+                      onClick={async () => {
+                        try {
+                          // Delete the entity
+                          await deleteEntity({ entity_id: id, entity_type: 'conversation' });
+                    
+                          // Immediately remove the deleted conversation from the state
+                          setChats((prevChats) => prevChats.filter((chat) => chat.id !== id));
+                        } catch (error) {
+                          console.error('Error deleting conversation:', error);
+                        }
+                      }}>
+                      &#x1F5D1;</button>
 
+                  </div>
+                  
+                ))}
               </div>
-              
-            ))}
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

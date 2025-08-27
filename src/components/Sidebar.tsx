@@ -3,24 +3,46 @@ import React from "react"
 import { useSidebar } from "./SidebarProvider"
 import {
   Home,
-  Inbox,
-  Calendar,
-  Search,
+  MessageSquare,
   Settings,
   Menu as MenuIcon
 } from "lucide-react"
 import "../styles/sidebar.css" // Optional: for custom styling
 
-const items = [
-  { title: "Home", icon: <Home size={18} />, href: "#" },
-  { title: "Inbox", icon: <Inbox size={18} />, href: "#" },
-  { title: "Calendar", icon: <Calendar size={18} />, href: "#" },
-  { title: "Search", icon: <Search size={18} />, href: "#" },
-  { title: "Settings", icon: <Settings size={18} />, href: "#" },
-]
+interface SidebarProps {
+  onNavigate?: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void;
+  currentPage?: 'dashboard' | 'my-chats' | 'conversation';
+}
 
-export function Sidebar() {
+export function Sidebar({ onNavigate, currentPage }: SidebarProps) {
   const { isOpen, toggle } = useSidebar()
+
+  const handleNavigation = (page: 'dashboard' | 'my-chats') => {
+    if (onNavigate) {
+      onNavigate(page);
+    }
+  };
+
+  const items = [
+    { 
+      title: "Dashboard", 
+      icon: <Home size={18} />, 
+      onClick: () => handleNavigation('dashboard'),
+      isActive: currentPage === 'dashboard'
+    },
+    { 
+      title: "My Chats", 
+      icon: <MessageSquare size={18} />, 
+      onClick: () => handleNavigation('my-chats'),
+      isActive: currentPage === 'my-chats'
+    },
+    { 
+      title: "Settings", 
+      icon: <Settings size={18} />, 
+      onClick: () => {/* Add settings functionality later */},
+      isActive: false
+    },
+  ];
 
   return (
     <aside className={`sidebar ${isOpen ? "open" : "collapsed"}`}>
@@ -33,10 +55,15 @@ export function Sidebar() {
 
       <nav className="sidebar-menu">
         {items.map(item => (
-          <a href={item.href} key={item.title} className="sidebar-item">
+          <button 
+            key={item.title} 
+            className={`sidebar-item ${item.isActive ? 'active' : ''}`}
+            onClick={item.onClick}
+            type="button"
+          >
             {item.icon}
             {isOpen && <span className="sidebar-label">{item.title}</span>}
-          </a>
+          </button>
         ))}
       </nav>
     </aside>

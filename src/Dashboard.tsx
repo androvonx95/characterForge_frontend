@@ -6,11 +6,13 @@ import Conversation from './conversation';
 import './styles/Dashboard.css';
 import './styles/global.css';
 import CharacterPreviewModal from './components/CharacterPreviewModal';
+// Import sidebar components - make sure SidebarProvider is wrapping your app
+import { Sidebar } from './components/Sidebar';
+import { useSidebar } from './components/SidebarProvider';
 
 import { getSignedUploadUrl, uploadFileToS3 } from './getSignedUploadUrl';
 import React from 'react';
 import { useRealtimeCharacterSync } from './useRealtimeCharacterSync';
-
 
 export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void }) {
   const DEFAULT_IMAGE_URL = "https://imgs.search.brave.com/SlAHcvHF1G6DX8aNn-45OSpTEyTI2Zy4Mr-DzvMrOyw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzk3LzM4/L2JkLzk3MzhiZGQy/NjU4YWY2MzczODdk/ZDUxNDRlM2FjNTI4/LmpwZw"
@@ -35,8 +37,8 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  // const [publicCharacters, setPublicCharacters] = useState<any[]>([]);
-  // const [token, setToken] = useState<string | null>(null);
+  // Get sidebar state for responsive layout
+  const { isOpen } = useSidebar();
   
   useRealtimeCharacterSync(token, setPublicCharacters);
   const [previewCharacter, setPreviewCharacter] = useState<null | {
@@ -46,7 +48,6 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
     description: string;
     imageUrl: string;
   }>(null);
-
 
   useEffect(() => {
     const getCharacters = async () => {
@@ -78,8 +79,6 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
         });
         const publicChars = await publicResponse.json();
         setPublicCharacters(publicChars);
-        // console.log(publicChars);
-        // console.log(myChars);
       } catch (err) {
         setError((err as any).message || 'Failed to fetch characters');
       } finally {
@@ -125,320 +124,328 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
 
   if (activeConversationId) {
     return (
-      <Conversation
-        conversationId={activeConversationId}
-        onNavigate={(page) => {
-          setActiveConversationId(null);
-          onNavigate(page);
-        }}
-      />
+      <div className="app-layout">
+        <Sidebar onNavigate={onNavigate} currentPage="conversation" />
+        <main className={`main-content ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
+          <Conversation
+            conversationId={activeConversationId}
+            onNavigate={(page) => {
+              setActiveConversationId(null);
+              onNavigate(page);
+            }}
+          />
+        </main>
+      </div>
     );
   }
 
   if (activeBotId && token) {
     return (
-      <LazyBotIntro
-        characterId={activeBotId}
-        onStartConversation={(convId) => {
-          setActiveConversationId(convId);
-          setActiveBotId(null);
-          onNavigate('conversation', convId);
-        }}
-        authToken={token}
-        onNavigate={(page, conversationId) => {
-          setActiveBotId(null);
-          setActiveConversationId(conversationId ?? null);
-          onNavigate(page, conversationId);
-        }}
-      />
+      <div className="app-layout">
+        <Sidebar onNavigate={onNavigate} currentPage="dashboard" />
+        <main className={`main-content ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
+          <LazyBotIntro
+            characterId={activeBotId}
+            onStartConversation={(convId) => {
+              setActiveConversationId(convId);
+              setActiveBotId(null);
+              onNavigate('conversation', convId);
+            }}
+            authToken={token}
+            onNavigate={(page, conversationId) => {
+              setActiveBotId(null);
+              setActiveConversationId(conversationId ?? null);
+              onNavigate(page, conversationId);
+            }}
+          />
+        </main>
+      </div>
     );
   }
 
   return (
-    <div className="dashboard-container">
+    <div className="app-layout">
+      <Sidebar onNavigate={onNavigate} currentPage="dashboard" />
+      <main className={`main-content ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
+        <div className="dashboard-container">
 
-      <button className="primary-button" onClick={() => onNavigate('my-chats')}>My Chats</button>
-      <h1 className="dashboard-heading">🎮 Character Dashboard</h1>
-      {loading && <p>Loading...</p>}
-      {error && <p className="dashboard-error">{error}</p>}
+          {/* <button className="primary-button" onClick={() => onNavigate('my-chats')}>My Chats</button> */}
+          <h1 className="dashboard-heading">🎮 Character Dashboard</h1>
+          {loading && <p>Loading...</p>}
+          {error && <p className="dashboard-error">{error}</p>}
 
-      <section className="dashboard-section my-characters-section">
-        <div className="section-header">
-          <h2>My Characters</h2>
-          <button className="primary-button my-chats-button" onClick={() => onNavigate('my-chats')}>
-            💬 My Chats
-          </button>
-          <button className="primary-button" onClick={() => setShowModal(true)}>+ Create Bot</button>
-        </div>
+          <section className="dashboard-section my-characters-section">
+            <div className="section-header">
+              <h2>My Characters</h2>
+              <button className="primary-button my-chats-button" onClick={() => onNavigate('my-chats')}>
+                💬 My Chats
+              </button>
+              <button className="primary-button" onClick={() => setShowModal(true)}>+ Create Bot</button>
+            </div>
 
-      {/* NEW: Horizontal bar layout for My Characters */}
-      <div className="my-characters-bar">
-        <span className="my-characters-label">YOUR BOTS</span>
+          {/* NEW: Horizontal bar layout for My Characters */}
+          <div className="my-characters-bar">
+            <span className="my-characters-label">YOUR BOTS</span>
 
-        <div 
-          className="create-bot-circle" 
-          onClick={() => setShowModal(true)}
-          title="Create Bot"
-        ></div>
+            <div 
+              className="create-bot-circle" 
+              onClick={() => setShowModal(true)}
+              title="Create Bot"
+            ></div>
 
-        {myCharacters.map((char) => {
-          let imageUrl = DEFAULT_IMAGE_URL;
+            {myCharacters.map((char) => {
+              let imageUrl = DEFAULT_IMAGE_URL;
 
-          if (typeof char.prompt === "string") {
-            try {
-              const parsed = JSON.parse(char.prompt);
-              imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
-            } catch {
-              // Use default image
-            }
-          }
+              if (typeof char.prompt === "string") {
+                try {
+                  const parsed = JSON.parse(char.prompt);
+                  imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
+                } catch {
+                  // Use default image
+                }
+              }
 
-          return (
-            <div key={char.id} className="my-character-avatar-wrapper">
-              <img
-                src={imageUrl}
-                alt={char.name}
-                className="my-character-avatar"
-                title={char.name}
-                onClick={() => {
-                  let imageUrl = DEFAULT_IMAGE_URL;
-                  let description = '';
-                  console.log( char );
-                  if (typeof char.prompt === "string") {
-                    try {
-                      const parsed = JSON.parse(char.prompt);
-                      imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
-                      description = parsed.description || '';
-                    } catch {
-                      // fallback
-                    }
-                  }
+              return (
+                <div key={char.id} className="my-character-avatar-wrapper">
+                  <img
+                    src={imageUrl}
+                    alt={char.name}
+                    className="my-character-avatar"
+                    title={char.name}
+                    onClick={() => {
+                      let imageUrl = DEFAULT_IMAGE_URL;
+                      let description = '';
+                      console.log( char );
+                      if (typeof char.prompt === "string") {
+                        try {
+                          const parsed = JSON.parse(char.prompt);
+                          imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
+                          description = parsed.description || '';
+                        } catch {
+                          // fallback
+                        }
+                      }
 
-                  setPreviewCharacter({
-                    id: char.id,
-                    name: char.name,
-                    private: char.private,
-                    description,
-                    imageUrl,
-                  });
-                  console.log(char);
-                }}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL;
+                      setPreviewCharacter({
+                        id: char.id,
+                        name: char.name,
+                        private: char.private,
+                        description,
+                        imageUrl,
+                      });
+                      console.log(char);
+                    }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL;
+                    }}
+                  />
+                  <span className="my-character-name" title={char.name}>
+                    {char.name}
+                  </span>
+                </div>
+              );
+            })}
+
+            {/* ✅ Modal rendered once, after the loop */}
+            {previewCharacter && (
+              <CharacterPreviewModal
+                id={previewCharacter.id}
+                name={previewCharacter.name}
+                description={previewCharacter.description}
+                imageUrl={previewCharacter.imageUrl}
+                private={previewCharacter.private}
+                onClose={() => setPreviewCharacter(null)}
+                onDelete={(id) => {
+                  setMyCharacters((prev) => prev.filter((char) => char.id !== id));
+                  setPreviewCharacter(null);
                 }}
               />
-              <span className="my-character-name" title={char.name}>
-                {char.name}
-              </span>
-            </div>
-          );
-        })}
-
-        {/* ✅ Modal rendered once, after the loop */}
-        {previewCharacter && (
-          <CharacterPreviewModal
-            id={previewCharacter.id}
-            name={previewCharacter.name}
-            description={previewCharacter.description}
-            imageUrl={previewCharacter.imageUrl}
-            private={previewCharacter.private}
-            onClose={() => setPreviewCharacter(null)}
-            onDelete={(id) => {
-              setMyCharacters((prev) => prev.filter((char) => char.id !== id));
-              setPreviewCharacter(null);
-            }}
-          />
-        )}
-      </div>
-
-
-      </section>
-      
-      {publicCharacters.length > 0 && (
-        <section className="dashboard-section">
-          <h2>All Characters</h2>
-          <div className="character-card-grid">
-              {publicCharacters.map((char) => {
-                  let description = "";
-                  let startingMessage = "";
-                  let imageUrl = DEFAULT_IMAGE_URL;
-
-                  if (typeof char.prompt === "string") {
-                    try {
-                      const parsed = JSON.parse(char.prompt);
-                      description = parsed.description || "";
-                      startingMessage = parsed.startingMessage || "";
-                      imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
-                    } catch {
-                      description = "";
-                      startingMessage = char.prompt;
-                    }
-                  }
-
-                  return (
-                    <div
-                      key={char.id}
-                      className="character-card"
-                      onClick={() => setActiveBotId(char.id.toString())}
-                    >
-                      {/* ✅ ADD IMAGE */}
-                      <img
-                        src={imageUrl}
-                        alt={char.name}
-                        className="character-image"
-                        onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL }}
-                      />
-
-                      <div className="character-card-header">
-                        <h3>{char.name}</h3>
-                        <span className="visibility-badge public">Public</span>
-                      </div>
-
-                      {description && <p className="character-description">{description}</p>}
-                      {/* {startingMessage && (
-                        <p className="character-snippet">{startingMessage.slice(0, 100)}...</p>
-                      )} */}
-                      {char.createdAt && (
-                        <p className="character-date">
-                          Created: {new Date(char.createdAt).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-
+            )}
           </div>
-        </section>
+
+          </section>
+          
+          {publicCharacters.length > 0 && (
+            <section className="dashboard-section">
+              <h2>All Characters</h2>
+              <div className="character-card-grid">
+                  {publicCharacters.map((char) => {
+                      let description = "";
+                      let startingMessage = "";
+                      let imageUrl = DEFAULT_IMAGE_URL;
+
+                      if (typeof char.prompt === "string") {
+                        try {
+                          const parsed = JSON.parse(char.prompt);
+                          description = parsed.description || "";
+                          startingMessage = parsed.startingMessage || "";
+                          imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
+                        } catch {
+                          description = "";
+                          startingMessage = char.prompt;
+                        }
+                      }
+
+                      return (
+                        <div
+                          key={char.id}
+                          className="character-card"
+                          onClick={() => setActiveBotId(char.id.toString())}
+                        >
+                          {/* ✅ ADD IMAGE */}
+                          <img
+                            src={imageUrl}
+                            alt={char.name}
+                            className="character-image"
+                            onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL }}
+                          />
+
+                          <div className="character-card-header">
+                            <h3>{char.name}</h3>
+                            <span className="visibility-badge public">Public</span>
+                          </div>
+
+                          {description && <p className="character-description">{description}</p>}
+                          {char.createdAt && (
+                            <p className="character-date">
+                              Created: {new Date(char.createdAt).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+
+              </div>
+            </section>
+          )}
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Create a New Character</h3>
+            <input
+              className="modal-input"
+              placeholder="Character Name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+            />
+            <textarea
+              className="modal-textarea"
+              placeholder="Character Description"
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+            />
+            <textarea
+              className="modal-textarea"
+              placeholder="Starting Message"
+              value={newStartingMessage}
+              onChange={(e) => setNewStartingMessage(e.target.value)}
+            />
+
+            {/* 👇 Image Upload */}
+            <div style={{ marginTop: '1rem' }}>
+              <label className="checkbox-label">Upload Character Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+              />
+              {uploadingImage && <p>Uploading image...</p>}
+              {imageUrl && <p style={{ fontSize: '0.9em' }}>✅ Uploaded</p>}
+            </div>
+
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={isPrivate}
+                onChange={() => setIsPrivate((p) => !p)}
+              />
+              {' '}Private
+            </label>
+
+            <div className="modal-actions">
+              <button
+                className="primary-button"
+                disabled={creating || uploadingImage}
+                onClick={async () => {
+                  setCreating(true);
+                  try {
+                    let uploadedUrl: string | null = imageUrl;
+
+                    if (imageFile && !uploadedUrl) {
+                      setUploadingImage(true);
+                      const res = await getSignedUploadUrl(imageFile.name, imageFile.type);
+                      if (!res) throw new Error("Could not get signed upload URL");
+
+                      const success = await uploadFileToS3(res.signedUrl, imageFile);
+                      if (!success) throw new Error("Failed to upload image");
+
+                      uploadedUrl = res.fileUrl;
+                      setImageUrl(uploadedUrl);
+                    }
+
+                    const promptObj = {
+                      description: newDescription,
+                      startingMessage: newStartingMessage,
+                      imageUrl: uploadedUrl, // 👈 include uploaded image URL
+                    };
+                    console.log("Prompt Object:", promptObj);
+                    const result = await createCharacter({
+                      name: newName,
+                      prompt: JSON.stringify(promptObj),
+                      private: isPrivate,
+                    });
+
+                    setMyCharacters((prev) => [
+                      ...prev,
+                      {
+                        id: result.id || Date.now(),
+                        name: newName,
+                        private: isPrivate,
+                        prompt: JSON.stringify(promptObj),
+                      },
+                    ]);
+
+                    // If the character is public, also add it to public characters
+                    if (!isPrivate) {
+                      setPublicCharacters((prev) => [
+                        {
+                          id: result.id || Date.now(),
+                          name: newName,
+                          private: isPrivate,
+                          prompt: JSON.stringify(promptObj),
+                          createdAt: new Date().toISOString(),
+                        },
+                        ...prev,
+                      ]);
+                    }
+
+                    // Reset all
+                    setNewName('');
+                    setNewDescription('');
+                    setNewStartingMessage('');
+                    setImageFile(null);
+                    setImageUrl(null);
+                    setIsPrivate(true);
+                    setShowModal(false);
+                  } catch (err: any) {
+                    alert(err.message || "Failed to create character");
+                  } finally {
+                    setCreating(false);
+                    setUploadingImage(false);
+                  }
+                }}
+              >
+                {creating ? "Creating..." : "Create"}
+              </button>
+              <button className="cancel-button" onClick={() => setShowModal(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
       )}
 
-
-
-
-{showModal && (
-  <div className="modal-overlay">
-    <div className="modal">
-      <h3>Create a New Character</h3>
-      <input
-        className="modal-input"
-        placeholder="Character Name"
-        value={newName}
-        onChange={(e) => setNewName(e.target.value)}
-      />
-      <textarea
-        className="modal-textarea"
-        placeholder="Character Description"
-        value={newDescription}
-        onChange={(e) => setNewDescription(e.target.value)}
-      />
-      <textarea
-        className="modal-textarea"
-        placeholder="Starting Message"
-        value={newStartingMessage}
-        onChange={(e) => setNewStartingMessage(e.target.value)}
-      />
-
-      {/* 👇 Image Upload */}
-      <div style={{ marginTop: '1rem' }}>
-        <label className="checkbox-label">Upload Character Image</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-        />
-        {uploadingImage && <p>Uploading image...</p>}
-        {imageUrl && <p style={{ fontSize: '0.9em' }}>✅ Uploaded</p>}
-      </div>
-
-      <label className="checkbox-label">
-        <input
-          type="checkbox"
-          checked={isPrivate}
-          onChange={() => setIsPrivate((p) => !p)}
-        />
-        {' '}Private
-      </label>
-
-      <div className="modal-actions">
-        <button
-          className="primary-button"
-          disabled={creating || uploadingImage}
-          onClick={async () => {
-            setCreating(true);
-            try {
-              let uploadedUrl: string | null = imageUrl;
-
-              if (imageFile && !uploadedUrl) {
-                setUploadingImage(true);
-                const res = await getSignedUploadUrl(imageFile.name, imageFile.type);
-                if (!res) throw new Error("Could not get signed upload URL");
-
-                const success = await uploadFileToS3(res.signedUrl, imageFile);
-                if (!success) throw new Error("Failed to upload image");
-
-                uploadedUrl = res.fileUrl;
-                setImageUrl(uploadedUrl);
-              }
-
-              const promptObj = {
-                description: newDescription,
-                startingMessage: newStartingMessage,
-                imageUrl: uploadedUrl, // 👈 include uploaded image URL
-              };
-              console.log("Prompt Object:", promptObj);
-              const result = await createCharacter({
-                name: newName,
-                prompt: JSON.stringify(promptObj),
-                private: isPrivate,
-              });
-
-              setMyCharacters((prev) => [
-                ...prev,
-                {
-                  id: result.id || Date.now(),
-                  name: newName,
-                  private: isPrivate,
-                  prompt: JSON.stringify(promptObj),
-                },
-              ]);
-
-              // If the character is public, also add it to public characters
-              if (!isPrivate) {
-                setPublicCharacters((prev) => [
-                  {
-                    id: result.id || Date.now(),
-                    name: newName,
-                    private: isPrivate,
-                    prompt: JSON.stringify(promptObj),
-                    createdAt: new Date().toISOString(),
-                  },
-                  ...prev,
-                ]);
-              }
-
-              // Reset all
-              setNewName('');
-              setNewDescription('');
-              setNewStartingMessage('');
-              setImageFile(null);
-              setImageUrl(null);
-              setIsPrivate(true);
-              setShowModal(false);
-            } catch (err: any) {
-              alert(err.message || "Failed to create character");
-            } finally {
-              setCreating(false);
-              setUploadingImage(false);
-            }
-          }}
-        >
-          {creating ? "Creating..." : "Create"}
-        </button>
-        <button className="cancel-button" onClick={() => setShowModal(false)}>Cancel</button>
-      </div>
-    </div>
-  </div>
-)}
-
+        </div>
+      </main>
     </div>
   );
 }
