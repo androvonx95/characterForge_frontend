@@ -33,7 +33,7 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
     console.log("Profile url not found");
     console.log(err);
   }
-  console.log(imageUrl);
+  // console.log(imageUrl);
 
   useEffect(() => {
     fetchBotDetails();
@@ -53,7 +53,7 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
   async function sendMessage(messageContent: string) {
     if (!messageContent.trim()) return;
 
-    const userMessage: Message = { role: 'user', content: messageContent.trim() };
+    const userMessage: Message = { role: 'user', content: messageContent.trim(), idx: messages.length - 1 };
     setMessages(prev => [...prev, userMessage]);
     setLoading(true);
     setError(null);
@@ -71,6 +71,9 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
 
       if (res.success && res.message) {
         const aiMessage: Message = { role: 'character', content: res.message };
+        aiMessage.idx = messages.length - 1;
+        // console.log(aiMessage);
+        // console.log(messages);
         setMessages(prev => [...prev, aiMessage]);
       } else {
         setError(res.error || 'Something went wrong');
@@ -147,7 +150,7 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
       {/* Loading indicator */}
       {loading && (
         <div className="loading-indicator">
-          <span>AI is thinking</span>
+          <span>{botInfo?.bot_name}</span>
           <div className="loading-dots">
             <div className="loading-dot"></div>
             <div className="loading-dot"></div>

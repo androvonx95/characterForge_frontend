@@ -68,16 +68,53 @@ Before you begin, ensure you have the following installed:
 ## 📂 Project Structure
 
 ```
-src/
-├── components/         # Reusable UI components
-├── styles/            # Global styles and CSS modules
-├── types/             # TypeScript type definitions
-├── App.tsx            # Main application component
-├── Dashboard.tsx      # Main dashboard component
-├── conversation.tsx   # Chat conversation component
-├── myChats.tsx        # User's chat history
-├── supabaseClient.ts  # Supabase client configuration
-└── ...
+ch_frontend/
+├── public/                  # Static files
+├── src/
+│   ├── components/          # Reusable UI components
+│   │   ├── Sidebar.tsx      # Sidebar navigation component
+│   │   ├── SidebarProvider.tsx  # Context provider for sidebar state
+│   │   └── CharacterPreviewModal.tsx  # Modal for character previews
+│   │
+│   ├── styles/              # Global styles and CSS modules
+│   │   ├── Dashboard.css
+│   │   ├── MyChats.css
+│   │   ├── chatUI.css
+│   │   ├── sidebar.css
+│   │   ├── global.css
+│   │   └── CharacterPreviewModal.css
+│   │
+│   ├── utils/               # Utility functions
+│   │   ├── aiChat.ts        # AI chat functionality
+│   │   ├── createCharacter.ts # Character creation logic
+│   │   ├── deleteCharOrConv.ts # Deletion utilities
+│   │   ├── deleteMsgs.ts    # Message deletion logic
+│   │   ├── fetchBotAndLastMessage.ts
+│   │   ├── getCharacterInfo.ts
+│   │   ├── getEntityDeletionInfo.ts
+│   │   └── getSignedUploadUrl.ts
+│   │
+│   ├── hooks/               # Custom React hooks
+│   │   ├── useLazyMessages.tsx
+│   │   └── useRealtimeCharacterSync.ts
+│   │
+│   ├── types.ts             # TypeScript type definitions
+│   ├── App.tsx              # Root application component
+│   ├── Dashboard.tsx        # Main dashboard view
+│   ├── conversation.tsx     # Chat conversation interface
+│   ├── myChats.tsx          # User's chat history view
+│   ├── Paginator.tsx        # Pagination component
+│   ├── supabaseClient.ts    # Supabase configuration
+│   └── main.tsx             # Application entry point
+│
+├── .env                     # Environment variables
+├── .gitignore               # Git ignore file
+├── package.json             # Project dependencies and scripts
+├── tsconfig.json            # TypeScript configuration
+├── tsconfig.node.json       # TypeScript node configuration
+├── tsconfig.app.json        # TypeScript app configuration
+├── vite.config.ts           # Vite configuration
+└── README.md                # Project documentation
 ```
 
 ## 🎨 Theming
