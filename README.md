@@ -7,8 +7,7 @@ A modern, real-time chat application built with React, TypeScript, and Supabase.
 - 🔒 **User Authentication**: Secure login and registration using Supabase Auth
 - 🤖 **Chatbot Creation**: Create and customize AI chatbots with custom avatars and personalities
 - 💬 **Real-time Messaging**: Instant message exchange with AI chatbots
-- 🎨 **Customizable UI**: Modern, responsive design with a dark theme and pink accents
-- 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
+- 🎨 **Sleak UI**: Modern, responsive design with a dark theme and pink accents
 - 🔄 **Real-time Updates**: Instant synchronization across devices using Supabase Realtime
 - 📦 **File Uploads**: Support for custom bot avatars with image uploads
 
@@ -20,7 +19,6 @@ A modern, real-time chat application built with React, TypeScript, and Supabase.
 - **Backend**: Supabase (Auth, Database, Storage)
 - **Real-time**: Supabase Realtime
 - **UI Components**: Custom components with Lucide icons
-- **Routing**: React Router v6
 
 ## 📦 Prerequisites
 
@@ -37,8 +35,8 @@ Before you begin, ensure you have the following installed:
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd ch_frontend
+   git clone (https://github.com/androvonx95/characterForge_frontend/)
+   cd characterForge_frontend
    ```
 
 2. **Install dependencies**
@@ -53,6 +51,7 @@ Before you begin, ensure you have the following installed:
    ```env
    VITE_SUPABASE_URL=your_supabase_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   *among other env vars for urls either implemented as supabase edge functions or locally*
    ```
 
 4. **Start the development server**
@@ -65,57 +64,13 @@ Before you begin, ensure you have the following installed:
 5. **Open in your browser**
    The application will be available at `http://localhost:5173`
 
-## 📂 Project Structure
+6. **OUTPUT**
 
-```
-ch_frontend/
-├── public/                  # Static files
-├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── Sidebar.tsx      # Sidebar navigation component
-│   │   ├── SidebarProvider.tsx  # Context provider for sidebar state
-│   │   └── CharacterPreviewModal.tsx  # Modal for character previews
-│   │
-│   ├── styles/              # Global styles and CSS modules
-│   │   ├── Dashboard.css
-│   │   ├── MyChats.css
-│   │   ├── chatUI.css
-│   │   ├── sidebar.css
-│   │   ├── global.css
-│   │   └── CharacterPreviewModal.css
-│   │
-│   ├── utils/               # Utility functions
-│   │   ├── aiChat.ts        # AI chat functionality
-│   │   ├── createCharacter.ts # Character creation logic
-│   │   ├── deleteCharOrConv.ts # Deletion utilities
-│   │   ├── deleteMsgs.ts    # Message deletion logic
-│   │   ├── fetchBotAndLastMessage.ts
-│   │   ├── getCharacterInfo.ts
-│   │   ├── getEntityDeletionInfo.ts
-│   │   └── getSignedUploadUrl.ts
-│   │
-│   ├── hooks/               # Custom React hooks
-│   │   ├── useLazyMessages.tsx
-│   │   └── useRealtimeCharacterSync.ts
-│   │
-│   ├── types.ts             # TypeScript type definitions
-│   ├── App.tsx              # Root application component
-│   ├── Dashboard.tsx        # Main dashboard view
-│   ├── conversation.tsx     # Chat conversation interface
-│   ├── myChats.tsx          # User's chat history view
-│   ├── Paginator.tsx        # Pagination component
-│   ├── supabaseClient.ts    # Supabase configuration
-│   └── main.tsx             # Application entry point
-│
-├── .env                     # Environment variables
-├── .gitignore               # Git ignore file
-├── package.json             # Project dependencies and scripts
-├── tsconfig.json            # TypeScript configuration
-├── tsconfig.node.json       # TypeScript node configuration
-├── tsconfig.app.json        # TypeScript app configuration
-├── vite.config.ts           # Vite configuration
-└── README.md                # Project documentation
-```
+<img width="1886" height="957" alt="image" src="https://github.com/user-attachments/assets/81788ec3-a677-4ee3-bb0d-042e037c83eb" />
+<img width="1886" height="957" alt="image" src="https://github.com/user-attachments/assets/1793aff7-73a7-4644-b933-12d51a8256e3" />
+<img width="1886" height="957" alt="image" src="https://github.com/user-attachments/assets/3a423476-00a2-4c11-ba44-6d36099c1f81" />
+<img width="1022" height="958" alt="image" src="https://github.com/user-attachments/assets/fc116765-6315-41f4-94c6-304d154f65f5" />
+
 
 ## 🎨 Theming
 
@@ -140,3 +95,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [React](https://reactjs.org/) for the UI library
 - [Lucide](https://lucide.dev/) for the beautiful icons
 
+## BACKEND
+Check out the backend at [https://github.com/androvonx95/CharacterForge_Backend](https://github.com/androvonx95/CharacterForge_Backend)   
