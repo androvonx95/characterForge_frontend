@@ -33,7 +33,6 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
     console.log("Profile url not found");
     console.log(err);
   }
-  // console.log(imageUrl);
 
   useEffect(() => {
     fetchBotDetails();
@@ -52,8 +51,8 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
 
   async function sendMessage(messageContent: string) {
     if (!messageContent.trim()) return;
-
-    const userMessage: Message = { role: 'user', content: messageContent.trim(), idx: messages.length - 1 };
+    let Idx = messages[ messages.length - 1 ]?.idx ?? 0;
+    const userMessage: Message = { role: 'user', content: messageContent.trim(), idx: Idx + 1 };
     setMessages(prev => [...prev, userMessage]);
     setLoading(true);
     setError(null);
@@ -71,9 +70,8 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
 
       if (res.success && res.message) {
         const aiMessage: Message = { role: 'character', content: res.message };
-        aiMessage.idx = messages.length - 1;
-        // console.log(aiMessage);
-        // console.log(messages);
+        let Idx = messages[ messages.length - 1 ]?.idx ?? 0;
+        aiMessage.idx = Idx + 1;
         setMessages(prev => [...prev, aiMessage]);
       } else {
         setError(res.error || 'Something went wrong');

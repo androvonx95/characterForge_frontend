@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import supabase from './supabaseClient';
 import { getBotAndLastMessage } from './fetchBotAndLastMessage';
 import { deleteEntity } from './deleteCharOrConv';
@@ -58,7 +58,6 @@ export default function MyChats({
             try {
               const detail = await getBotAndLastMessage(conv.id);
               const botData = detail?.result?.[0];
-              
               const characterId = botData?.bot_id;
               let imageUrl: string | undefined;
         
@@ -84,6 +83,7 @@ export default function MyChats({
                 id: conv.id,
                 botName: botData?.bot_name?.trim() || 'Unknown Bot',
                 lastMessage: botData?.last_message_content || 'No messages yet',
+                last_message_created_at: botData?.last_message_created_at,
                 imageUrl,
               };
             } catch (error) {
@@ -97,8 +97,11 @@ export default function MyChats({
             }
           })
         );
+        const sortedChats = detailedChats.sort((a, b) => {
+          return new Date(b.last_message_created_at).getTime() - new Date(a.last_message_created_at).getTime();
+        });
         
-        setChats(detailedChats);
+        setChats(sortedChats);
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -108,24 +111,31 @@ export default function MyChats({
 
     fetchChats();
   }, []);
-
+  function formatDeemphasizedText(text: string): (string | JSX.Element)[] {
+    return text.split(/\*(.*?)\*/g).map((part, i) =>
+      i % 2 === 1 ? (
+        <span
+          key={i}
+          style={{
+            color: '#ddd',          // Light gray, but not too light
+            fontStyle: 'italic',
+            opacity: 0.85,          // Less transparent than before
+            fontWeight: 400,
+          }}
+        >
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
+  }
   return (
     <div className="app-layout">
       <Sidebar onNavigate={onNavigate} currentPage="my-chats" />
       <main className={`main-content ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
         <div className="myChats-container">
-          <header className="myChats-header">
-            <div className="myChats-header-content">
-              {/* <button
-                onClick={() => onNavigate('dashboard')}
-                className="myChats-dashboardBtn"
-                aria-label="Go to dashboard"
-              >
-                Dashboard
-              </button> */}
-              <h1 className="myChats-title">My Chats</h1>
-            </div>
-          </header>
+
 
           <div className="myChats-content">
             {loading && <p className="myChats-loading">Loading chats...</p>}
@@ -136,7 +146,7 @@ export default function MyChats({
             ) : (
               
               <div className="myChats-list">
-
+                {/* <h5 className="myChats-title">My Chats</h5> */}
                 {chats.map(({ id, botName, lastMessage, imageUrl }) => (
 
                   <div className="myChats-cardWrapper" key={id}> 
@@ -165,7 +175,7 @@ export default function MyChats({
                         <div className="myChats-botName">{botName}</div>
                       </div>
                       <div className="myChats-lastMessage" title={lastMessage}>
-                        {lastMessage || <i>No messages yet</i>}
+                        {formatDeemphasizedText(lastMessage) || <i>No messages yet</i>}
                       </div>
                       <small className="myChats-conversationId">Conversation ID: {id}</small>
                     </div>

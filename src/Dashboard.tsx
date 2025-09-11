@@ -215,7 +215,6 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
                     onClick={() => {
                       let imageUrl = DEFAULT_IMAGE_URL;
                       let description = '';
-                      console.log( char );
                       if (typeof char.prompt === "string") {
                         try {
                           const parsed = JSON.parse(char.prompt);
@@ -233,7 +232,6 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
                         description,
                         imageUrl,
                       });
-                      console.log(char);
                     }}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL;
@@ -389,7 +387,6 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
                       startingMessage: newStartingMessage,
                       imageUrl: uploadedUrl, // 👈 include uploaded image URL
                     };
-                    console.log("Prompt Object:", promptObj);
                     const result = await createCharacter({
                       name: newName,
                       prompt: JSON.stringify(promptObj),

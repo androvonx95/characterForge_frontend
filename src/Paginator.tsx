@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type JSX } from 'react';
 import supabase from './supabaseClient';
 import { type Message } from './types'; 
 import { deleteMessages } from './deleteMsgs';
@@ -217,6 +217,28 @@ export default function Paginator({
     })();
   }, [conversationId]);
 
+  
+  function formatDeemphasizedText(text: string): (string | JSX.Element)[] {
+    return text.split(/\*(.*?)\*/g).map((part, i) =>
+      i % 2 === 1 ? (
+        <span
+          key={i}
+          style={{
+            color: '#ddd',          // Light gray, but not too light
+            fontStyle: 'italic',
+            opacity: 0.85,          // Less transparent than before
+            fontWeight: 400,
+          }}
+        >
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
+  }
+  
+  
   return (
     <>
       <div ref={containerRef} className="chat-container">
@@ -236,7 +258,7 @@ export default function Paginator({
         {messages.map((msg, i) => (
           <div key={msg.id ?? i} className={`message-wrapper ${msg.role}`}>
             <div className={`message-bubble ${msg.role}`}>
-              {msg.content}
+              {formatDeemphasizedText(msg.content)}
               <div className="message-actions">
                 <button
                   className="action-btn delete"
