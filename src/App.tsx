@@ -5,6 +5,7 @@ import { ThemeMinimal } from '@supabase/auth-ui-shared';
 import Dashboard from './Dashboard';
 import MyChats from './myChats';
 import Conversation from './conversation';
+import Settings from './Settings';
 import { SidebarProvider } from './components/SidebarProvider';
 
 // Custom futuristic dark theme for the auth UI with pink accents
@@ -63,7 +64,6 @@ const customTheme = {
   },
 };
 
-// Custom styles for the auth container
 const authContainerStyles: React.CSSProperties = {
   minHeight: '100vh',
   display: 'grid',
@@ -147,7 +147,6 @@ const authCardStyles: React.CSSProperties = {
   overflow: 'hidden',
 };
 
-// Glow effect for the card
 const glowEffect = {
   content: '""',
   position: 'absolute' as const,
@@ -189,14 +188,13 @@ const taglineStyles = {
   letterSpacing: '0.05em',
 };
 
-
 export default function App() {
   const [session, setSession] = useState<any>(null);
-  const [page, setPage] = useState<'dashboard' | 'my-chats' | 'conversation' >('dashboard');
-
+  const [page, setPage] = useState<'dashboard' | 'my-chats' | 'conversation' | 'settings'>('dashboard');
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const handleNavigate = (newPage: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => {
+  const handleNavigate = (newPage: 'dashboard' | 'my-chats' | 'conversation' | 'settings', conversationId?: string) => {
     if (conversationId) {
       setSelectedConversationId(conversationId);
     }
@@ -204,12 +202,10 @@ export default function App() {
   };
 
   useEffect(() => {
-    // Check on load if there's an existing session
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
     });
 
-    // Listen for changes (login/logout)
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
     });
@@ -220,7 +216,6 @@ export default function App() {
   if (!session) {
     return (
       <div style={authContainerStyles}>
-        {/* Left Panel - Hero Content */}
         <div style={leftPanelStyles}>
           <h1 style={heroTitle}>
             Welcome to <br />
@@ -246,7 +241,6 @@ export default function App() {
           </ul>
         </div>
         
-        {/* Right Panel - Auth Form */}
         <div style={rightPanelStyles}>
           <div style={authCardStyles}>
             <div style={glowEffect}></div>
@@ -268,7 +262,6 @@ export default function App() {
                     borderRadius: '8px',
                     transition: 'all 0.2s ease',
                   },
-                  // Add more custom styles as needed
                 },
               }} 
               providers={[]}
@@ -292,7 +285,6 @@ export default function App() {
                     loading_button_label: 'Signing up...',
                     link_text: 'Don\'t have an account? Sign up',
                   },
-                  // Add more custom text as needed
                 },
               }}
             />
@@ -310,15 +302,13 @@ export default function App() {
       </SidebarProvider>
       }
       {page === 'my-chats' && <SidebarProvider><MyChats onNavigate={handleNavigate} /></SidebarProvider>}
+      {page === 'settings' && <SidebarProvider><Settings onNavigate={handleNavigate} /></SidebarProvider>}
       {page === 'conversation' && selectedConversationId && (
         <Conversation 
           onNavigate={handleNavigate} 
           conversationId={selectedConversationId} 
         />
       )}
-
-
-
     </div>
   );
 }
