@@ -1,5 +1,4 @@
 // components/Sidebar.tsx
-import React from "react"
 import { useSidebar } from "./SidebarProvider"
 import {
   Home,

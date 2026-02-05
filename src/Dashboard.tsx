@@ -11,7 +11,6 @@ import { Sidebar } from './components/Sidebar';
 import { useSidebar } from './components/SidebarProvider';
 
 import { getSignedUploadUrl, uploadFileToS3 } from './getSignedUploadUrl';
-import React from 'react';
 import { useRealtimeCharacterSync } from './useRealtimeCharacterSync';
 
 export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void }) {
@@ -89,38 +88,6 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
     getCharacters();
   }, []);
 
-  const handleCreateCharacter = async () => {
-    if (!newName.trim() || !newDescription.trim() || !newStartingMessage.trim()) return;
-
-    setCreating(true);
-    try {
-      const promptObj = {
-        description: newDescription,
-        startingMessage: newStartingMessage,
-      };
-
-      const result = await createCharacter({
-        name: newName,
-        prompt: JSON.stringify(promptObj),
-        private: isPrivate,
-      });
-
-      setMyCharacters((prev) => [
-        ...prev,
-        { id: result.id || Date.now(), name: newName, private: isPrivate },
-      ]);
-
-      setNewName('');
-      setNewDescription('');
-      setNewStartingMessage('');
-      setIsPrivate(true);
-      setShowModal(false);
-    } catch (err: any) {
-      alert(err.message || "Failed to create character");
-    } finally {
-      setCreating(false);
-    }
-  };
 
   if (activeConversationId) {
     return (
@@ -269,18 +236,15 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
               <div className="character-card-grid">
                   {publicCharacters.map((char) => {
                       let description = "";
-                      let startingMessage = "";
                       let imageUrl = DEFAULT_IMAGE_URL;
 
                       if (typeof char.prompt === "string") {
                         try {
                           const parsed = JSON.parse(char.prompt);
                           description = parsed.description || "";
-                          startingMessage = parsed.startingMessage || "";
                           imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
                         } catch {
                           description = "";
-                          startingMessage = char.prompt;
                         }
                       }
 

@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import supabase from './supabaseClient';
 import { getCharacterById, type Character } from './getCharacterInfo';
 import { sendAiMessage } from './aiChat';
 
@@ -33,14 +32,13 @@ export default function LazyBotIntro({
       setLoading(true);
       try {
         const result = await getCharacterById(characterId);
-        const char = result?.character;
-        if (!char) {
+        if (!result) {
           setError('Failed to load character');
         } else {
-          setCharacter(char);
+          setCharacter(result);
           try {
-            const parsed: CharacterPrompt = char.prompt
-              ? JSON.parse(char.prompt)
+            const parsed: CharacterPrompt = result.prompt
+              ? JSON.parse(result.prompt)
               : { description: '', startingMessage: '' };
             setPromptData(parsed);
           } catch (err) {
@@ -128,18 +126,6 @@ export default function LazyBotIntro({
     fontSize: '1.5rem',
     fontWeight: 'bold',
     marginBottom: '5px',
-  };
-
-  const botDescriptionStyle: React.CSSProperties = {
-    fontSize: '1rem',
-    color: '#555',
-    marginBottom: '10px',
-  };
-
-  const startingMessageStyle: React.CSSProperties = {
-    fontStyle: 'italic',
-    color: '#666',
-    marginBottom: '10px',
   };
 
   return (

@@ -22,7 +22,7 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
 
   const fetchBotDetails = async () => {
     const botData = await getBotAndLastMessage(conversationId);
-    setBotInfo(botData?.result[0]);
+    setBotInfo((botData?.result as any)?.[0]);
   };
   let imageUrl = 'https://imgs.search.brave.com/pnuCjus6wNu_B0lj4soEUb4KKx9_pn-HorGYVHwBMwY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4t/aWNvbnMtcG5nLmZs/YXRpY29uLmNvbS8x/MjgvMTIyMjUvMTIy/MjU4ODEucG5n';
   try{
@@ -138,11 +138,11 @@ export default function Conversation({ conversationId, onNavigate, initialUserMe
       </div>
 
       {/* Messages Container */}
-      <Paginator 
-        conversationId={conversationId} 
-        messages={messages} 
+      <Paginator
+        conversationId={conversationId}
+        messages={messages}
         setMessages={setMessages}
-        messagesEndRef={messagesEndRef}
+        messagesEndRef={messagesEndRef as React.RefObject<HTMLDivElement>}
       />
 
       {/* Loading indicator */}

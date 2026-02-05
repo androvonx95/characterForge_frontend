@@ -2,7 +2,6 @@ import { useEffect, useState, type JSX } from 'react';
 import supabase from './supabaseClient';
 import { getBotAndLastMessage } from './fetchBotAndLastMessage';
 import { deleteEntity } from './deleteCharOrConv';
-import { getEntityDeletionDetails } from './getEntityDeletionInfo';
 import './styles/global.css';
 import './styles/MyChats.css'; // Import the CSS styles
 import { getCharacterById } from './getCharacterInfo';
@@ -57,19 +56,19 @@ export default function MyChats({
           conversations.map(async (conv: { id: string }) => {
             try {
               const detail = await getBotAndLastMessage(conv.id);
-              const botData = detail?.result?.[0];
+              const botData = (detail?.result as any)?.[0];
               const characterId = botData?.bot_id;
               let imageUrl: string | undefined;
         
               if (characterId) {
                 const characterData = await getCharacterById(characterId);
-                
-                if (characterData?.character?.prompt) {
+
+                if ((characterData as any)?.character?.prompt) {
                   let parsedPrompt;
-                  
+
                   try {
                     // Try parsing the prompt as JSON
-                    parsedPrompt = JSON.parse(characterData.character.prompt);
+                    parsedPrompt = JSON.parse((characterData as any).character.prompt);
                     imageUrl = parsedPrompt?.imageUrl || undefined;
                   } catch (e) {
                     // If it's not valid JSON, treat it as plain text (legacy bots)

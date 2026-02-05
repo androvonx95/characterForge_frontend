@@ -40,7 +40,7 @@ export async function getCharacterById(characterId: string): Promise<Character |
     }
 
     const data = await res.json();
-    return data as Character;
+    return data.character as Character;
   } catch (err) {
     console.error('Error fetching character:', err);
     return null;
