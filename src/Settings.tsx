@@ -59,7 +59,8 @@ const Settings = ({ onNavigate }: SettingsProps) => {
       }
 
       const token = data.session.access_token;
-      const response = await fetch(import.meta.env.VITE_PASSWORD_RESET_ENDPOINT, {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/password-reset-self`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
