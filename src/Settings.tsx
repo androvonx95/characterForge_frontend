@@ -51,31 +51,34 @@ const Settings = ({ onNavigate }: SettingsProps) => {
 
     setLoading(true);
     try {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
+      // Verify the user is authenticated and get their email
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session?.user?.email) {
         setPasswordError('Not authenticated');
         setLoading(false);
         return;
       }
 
-      const token = data.session.access_token;
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/password-reset-self`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          current_password: currentPassword,
-          new_password: newPassword,
-        }),
+      const email = sessionData.session.user.email;
+
+      // Verify current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: currentPassword,
       });
 
-      const result = await response.json().catch(() => ({}));
+      if (signInError) {
+        setPasswordError('Current password is incorrect');
+        return;
+      }
 
-      if (!response.ok) {
-        setPasswordError(result.error || 'Failed to update password');
+      // Current password verified — update to new password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        setPasswordError(updateError.message || 'Failed to update password');
         return;
       }
 
