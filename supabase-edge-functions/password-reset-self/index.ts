@@ -1,93 +1,66 @@
 // name: password-reset-self
 // DEPLOY THIS TO SUPABASE — replace your existing edge function with this version
+// Follows the exact same pattern as the working delete-entity edge function
 import { createClient } from 'npm:@supabase/supabase-js@2.39.3';
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-};
-
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight requests
+  // Handle CORS for browser requests (same as delete-entity)
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+      },
+    });
   }
 
   try {
-    if (req.method !== 'POST') {
+    // Get the authorization header from the request
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Method not allowed' }),
-        { status: 405, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        JSON.stringify({ error: 'Authorization header required' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        }
       );
     }
 
-    // Extract Bearer token
-    const authHeader = req.headers.get('Authorization') || '';
-    if (!authHeader.startsWith('Bearer ')) {
+    // Extract the token from the authorization header
+    const token = authHeader.split(' ')[1];
+    if (!token) {
       return new Response(
-        JSON.stringify({ error: 'Missing or invalid Authorization header' }),
-        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
-    }
-    const userAccessToken = authHeader.slice(7).trim();
-    if (!userAccessToken) {
-      return new Response(
-        JSON.stringify({ error: 'Empty access token' }),
-        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        JSON.stringify({ error: 'Authorization token missing' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        }
       );
     }
 
-    // Parse body
-    let body: { current_password?: string; new_password?: string };
-    try {
-      body = await req.json();
-    } catch {
-      return new Response(
-        JSON.stringify({ error: 'Invalid JSON body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
-    }
-
-    const { current_password: currentPassword, new_password: newPassword } = body;
-    if (!currentPassword || typeof currentPassword !== 'string') {
-      return new Response(
-        JSON.stringify({ error: 'Missing current_password' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
-    }
-    if (!newPassword || typeof newPassword !== 'string') {
-      return new Response(
-        JSON.stringify({ error: 'Missing new_password' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
-    }
-
-    if (newPassword.length < 8) {
-      return new Response(
-        JSON.stringify({ error: 'Password must be at least 8 characters' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      );
-    }
-
-    // Create Supabase client using ANON_KEY (not the user token!) and pass auth via headers
-    // This matches the pattern used by your working edge functions
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      global: {
-        headers: { Authorization: authHeader },
-      },
-    });
+    // Create a Supabase client with the user's token (same pattern as delete-entity)
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      }
+    );
 
     // Get the authenticated user from the token
-    const { data: userData, error: userErr } = await supabase.auth.getUser(userAccessToken);
-    if (userErr || !userData?.user) {
-      console.error('Failed to get user from token', userErr);
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError || !userData?.user) {
+      console.error('Failed to get user:', userError);
       return new Response(
-        JSON.stringify({ error: 'Invalid or expired access token' }),
-        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        JSON.stringify({ error: 'Unauthorized or invalid token' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        }
       );
     }
 
@@ -95,46 +68,95 @@ Deno.serve(async (req: Request) => {
     if (!email) {
       return new Response(
         JSON.stringify({ error: 'User has no email; cannot reauthenticate' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        }
       );
     }
 
-    // Reauthenticate: verify current password by calling the REST sign-in endpoint
-    const signInResp = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({ email, password: currentPassword }),
-    });
+    // Parse the JSON body
+    const { current_password: currentPassword, new_password: newPassword } = await req.json();
+
+    if (!currentPassword || typeof currentPassword !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Missing current_password' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        }
+      );
+    }
+    if (!newPassword || typeof newPassword !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Missing new_password' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        }
+      );
+    }
+    if (newPassword.length < 8) {
+      return new Response(
+        JSON.stringify({ error: 'Password must be at least 8 characters' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        }
+      );
+    }
+
+    // Reauthenticate: verify current password via the REST sign-in endpoint
+    const signInResp = await fetch(
+      `${Deno.env.get('SUPABASE_URL')}/auth/v1/token?grant_type=password`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        },
+        body: JSON.stringify({ email, password: currentPassword }),
+      }
+    );
 
     if (!signInResp.ok) {
       return new Response(
         JSON.stringify({ error: 'Current password is incorrect' }),
-        { status: 401, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        }
       );
     }
 
     // Current password verified — update to new password
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
     if (error) {
       console.error('auth.updateUser error:', error);
       return new Response(
         JSON.stringify({ error: error.message || 'Failed to update password' }),
-        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        }
       );
     }
 
     return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      JSON.stringify({ success: true, message: 'Password updated successfully' }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      }
     );
   } catch (err) {
     console.error('Unexpected error in password-reset-self:', err);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      JSON.stringify({ error: err.message || 'Internal server error' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      }
     );
   }
 });
