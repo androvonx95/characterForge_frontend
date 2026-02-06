@@ -59,14 +59,11 @@ const Settings = ({ onNavigate }: SettingsProps) => {
       }
 
       const token = data.session.access_token;
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      const response = await fetch(`${supabaseUrl}/functions/v1/password-reset-self`, {
+      const response = await fetch(import.meta.env.VITE_PASSWORD_RESET_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
-          apikey: supabaseAnonKey,
         },
         body: JSON.stringify({
           current_password: currentPassword,
@@ -74,13 +71,7 @@ const Settings = ({ onNavigate }: SettingsProps) => {
         }),
       });
 
-      let result;
-      try {
-        result = await response.json();
-      } catch {
-        setPasswordError('Unexpected response from server');
-        return;
-      }
+      const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         setPasswordError(result.error || 'Failed to update password');
@@ -93,11 +84,7 @@ const Settings = ({ onNavigate }: SettingsProps) => {
       setConfirmPassword('');
       setTimeout(() => setPasswordMessage(''), 3000);
     } catch (err: any) {
-      if (err.name === 'TypeError' && err.message?.includes('fetch')) {
-        setPasswordError('Network error: Unable to reach the server. Please check your connection and try again.');
-      } else {
-        setPasswordError(err.message || 'Failed to update password');
-      }
+      setPasswordError(err.message || 'Failed to update password');
     } finally {
       setLoading(false);
     }
