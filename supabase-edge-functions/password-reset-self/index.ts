@@ -129,10 +129,19 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Current password verified — update to new password
-    const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+    // Current password verified — update to new password using the admin API
+    // We use SERVICE_ROLE_KEY here because auth.updateUser() requires a local
+    // session which doesn't exist in a Deno edge function (causes "Auth session missing!")
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { error } = await adminClient.auth.admin.updateUserById(userData.user.id, {
+      password: newPassword,
+    });
     if (error) {
-      console.error('auth.updateUser error:', error);
+      console.error('admin.updateUserById error:', error);
       return new Response(
         JSON.stringify({ error: error.message || 'Failed to update password' }),
         {
