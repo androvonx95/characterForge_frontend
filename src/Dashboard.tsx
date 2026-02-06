@@ -13,7 +13,7 @@ import { useSidebar } from './components/SidebarProvider';
 import { getSignedUploadUrl, uploadFileToS3 } from './getSignedUploadUrl';
 import { useRealtimeCharacterSync } from './useRealtimeCharacterSync';
 
-export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void }) {
+export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation' | 'settings', conversationId?: string) => void }) {
   const DEFAULT_IMAGE_URL = "https://imgs.search.brave.com/SlAHcvHF1G6DX8aNn-45OSpTEyTI2Zy4Mr-DzvMrOyw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzk3LzM4/L2JkLzk3MzhiZGQy/NjU4YWY2MzczODdk/ZDUxNDRlM2FjNTI4/LmpwZw"
   const [myCharacters, setMyCharacters] = useState<any[]>([]);
   const [publicCharacters, setPublicCharacters] = useState<any[]>([]);

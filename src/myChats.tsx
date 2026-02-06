@@ -19,7 +19,7 @@ interface ChatDetail {
 export default function MyChats({
   onNavigate,
 }: {
-  onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void;
+  onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation' | 'settings', conversationId?: string) => void;
 }) {
   const [chats, setChats] = useState<ChatDetail[]>([]);
   const [loading, setLoading] = useState(true);

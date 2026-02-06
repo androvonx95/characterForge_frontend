@@ -9,37 +9,37 @@ import {
 import "../styles/sidebar.css" // Optional: for custom styling
 
 interface SidebarProps {
-  onNavigate?: (page: 'dashboard' | 'my-chats' | 'conversation', conversationId?: string) => void;
-  currentPage?: 'dashboard' | 'my-chats' | 'conversation';
+  onNavigate?: (page: 'dashboard' | 'my-chats' | 'conversation' | 'settings', conversationId?: string) => void;
+  currentPage?: 'dashboard' | 'my-chats' | 'conversation' | 'settings';
 }
 
 export function Sidebar({ onNavigate, currentPage }: SidebarProps) {
   const { isOpen, toggle } = useSidebar()
 
-  const handleNavigation = (page: 'dashboard' | 'my-chats') => {
+  const handleNavigation = (page: 'dashboard' | 'my-chats' | 'settings') => {
     if (onNavigate) {
       onNavigate(page);
     }
   };
 
   const items = [
-    { 
-      title: "Dashboard", 
-      icon: <Home size={18} />, 
+    {
+      title: "Dashboard",
+      icon: <Home size={18} />,
       onClick: () => handleNavigation('dashboard'),
       isActive: currentPage === 'dashboard'
     },
-    { 
-      title: "My Chats", 
-      icon: <MessageSquare size={18} />, 
+    {
+      title: "My Chats",
+      icon: <MessageSquare size={18} />,
       onClick: () => handleNavigation('my-chats'),
       isActive: currentPage === 'my-chats'
     },
-    { 
-      title: "Settings", 
-      icon: <Settings size={18} />, 
-      onClick: () => {/* Add settings functionality later */},
-      isActive: false
+    {
+      title: "Settings",
+      icon: <Settings size={18} />,
+      onClick: () => handleNavigation('settings'),
+      isActive: currentPage === 'settings'
     },
   ];
 

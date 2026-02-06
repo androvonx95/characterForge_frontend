@@ -1,1 +1,35 @@
-import React, { useState } from 'react';\n\nconst AuthModal = ({ isOpen, onClose }) => {\n    const [email, setEmail] = useState('');\n    const [password, setPassword] = useState('');\n\n    const handleSubmit = (e) => {\n        e.preventDefault();\n        // Implement your authentication logic here\n        console.log('Email:', email);\n        console.log('Password:', password);\n        onClose();\n    };\n\n    return (\n        <div className={`modal ${isOpen ? 'is-open' : ''}`}>\n            <div className="modal-content">\n                <h2>Authentication</h2>\n                <form onSubmit={handleSubmit}>\n                    <div>\n                        <label>Email:</label>\n                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />\n                    </div>\n                    <div>\n                        <label>Password:</label>\n                        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />\n                    </div>\n                    <button type="submit">Login</button>\n                </form>\n                <button onClick={onClose}>Close</button>\n            </div>\n        </div>\n    );\n};\n\nexport default AuthModal;\n
+import { useState } from 'react';
+
+const AuthModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Email:', email);
+    console.log('Password:', password);
+    onClose();
+  };
+
+  return (
+    <div className={`modal ${isOpen ? 'is-open' : ''}`}>
+      <div className="modal-content">
+        <h2>Authentication</h2>
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>Email:</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          <div>
+            <label>Password:</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          </div>
+          <button type="submit">Login</button>
+        </form>
+        <button onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+};
+
+export default AuthModal;

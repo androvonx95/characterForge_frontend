@@ -1,55 +1,238 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
+import supabase from './supabaseClient';
+import { Sidebar } from './components/Sidebar';
+import { useSidebar } from './components/SidebarProvider';
+import './styles/Settings.css';
 
-const Settings = () => {
-    const handleLogout = () => {
-        // Handle logout functionality (e.g., clear user session, redirect to login page)
-        console.log('User logged out!');
+interface SettingsProps {
+  onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation' | 'settings', conversationId?: string) => void;
+}
+
+const Settings = ({ onNavigate }: SettingsProps) => {
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [darkMode, setDarkMode] = useState(true);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const { isOpen } = useSidebar();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        setUserEmail(data.session.user.email || '');
+      }
     };
+    getUser();
+  }, []);
 
-    return (
-        <div>
-            <h1>User Profile</h1>
-            <div>
-                {/* User Profile Information */}
-                <h2>Profile Details</h2>
-                <p>Name: John Doe</p>
-                <p>Email: johndoe@example.com</p>
+  const handlePasswordChange = async () => {
+    setPasswordMessage('');
+    setPasswordError('');
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError('All password fields are required');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New password and confirm password do not match');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+
+      setPasswordMessage('Password updated successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPasswordMessage(''), 3000);
+    } catch (err: any) {
+      setPasswordError(err.message || 'Failed to update password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      onNavigate('dashboard');
+    } catch (err: any) {
+      console.error('Logout error:', err);
+    }
+  };
+
+  return (
+    <div className="app-layout">
+      <Sidebar onNavigate={onNavigate} currentPage="settings" />
+      <main className={`main-content ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
+        <div className="settings-container">
+          <div className="settings-header">
+            <h1>Settings & Preferences</h1>
+            <p>Manage your account and customize your experience</p>
+          </div>
+
+          {/* User Profile Section */}
+          <section className="settings-section">
+            <div className="section-header">
+              <h2>User Profile</h2>
             </div>
-
-            <h1>Account Management</h1>
-            <div>
-                {/* Account Management Features */}
-                <h2>Change Password</h2>
-                <input type="password" placeholder="New Password" />
-                <button>Update Password</button>
+            <div className="section-content">
+              <div className="profile-info">
+                <div className="info-group">
+                  <label>Email Address</label>
+                  <p className="info-value">{userEmail || 'Loading...'}</p>
+                </div>
+                <div className="info-group">
+                  <label>Account Status</label>
+                  <p className="info-value">Active</p>
+                </div>
+                <div className="info-group">
+                  <label>Member Since</label>
+                  <p className="info-value">
+                    {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+                  </p>
+                </div>
+              </div>
             </div>
+          </section>
 
-            <h1>Statistics</h1>
-            <div>
-                {/* User Statistics */}
-                <h2>Your Activity</h2>
-                <p>Projects Completed: 5</p>
-                <p>Hours Spent: 20</p>
+          {/* Account Management Section */}
+          <section className="settings-section">
+            <div className="section-header">
+              <h2>Account Management</h2>
             </div>
-
-            <h1>Preferences</h1>
-            <div>
-                {/* User Preferences */}
-                <h2>Notification Settings</h2>
-                <label>
-                    <input type="checkbox" />
-                    Email Notifications
-                </label>
-                <br />
-                <label>
-                    <input type="checkbox" />
-                    SMS Notifications
-                </label>
+            <div className="section-content">
+              <div className="password-change">
+                <h3>Change Password</h3>
+                <div className="form-group">
+                  <label htmlFor="current-pwd">Current Password</label>
+                  <input
+                    id="current-pwd"
+                    type="password"
+                    placeholder="Enter your current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="new-pwd">New Password</label>
+                  <input
+                    id="new-pwd"
+                    type="password"
+                    placeholder="Enter your new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="confirm-pwd">Confirm Password</label>
+                  <input
+                    id="confirm-pwd"
+                    type="password"
+                    placeholder="Confirm your new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+                {passwordMessage && <div className="message success">{passwordMessage}</div>}
+                {passwordError && <div className="message error">{passwordError}</div>}
+                <button
+                  onClick={handlePasswordChange}
+                  disabled={loading}
+                  className="btn btn-primary"
+                >
+                  {loading ? 'Updating...' : 'Update Password'}
+                </button>
+              </div>
             </div>
+          </section>
 
-            <button onClick={handleLogout}>Logout</button>
+          {/* Display Preferences Section */}
+          <section className="settings-section">
+            <div className="section-header">
+              <h2>Display Preferences</h2>
+            </div>
+            <div className="section-content">
+              <div className="preference-item">
+                <div className="preference-info">
+                  <h3>Dark Mode</h3>
+                  <p>Use dark theme for the interface</p>
+                </div>
+                <div className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    id="dark-mode"
+                    checked={darkMode}
+                    onChange={(e) => setDarkMode(e.target.checked)}
+                  />
+                  <label htmlFor="dark-mode" className="toggle-label"></label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Notification Settings Section */}
+          <section className="settings-section">
+            <div className="section-header">
+              <h2>Notification Settings</h2>
+            </div>
+            <div className="section-content">
+              <div className="preference-item">
+                <div className="preference-info">
+                  <h3>Email Notifications</h3>
+                  <p>Receive updates about your conversations and new messages</p>
+                </div>
+                <div className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    id="email-notify"
+                    checked={emailNotifications}
+                    onChange={(e) => setEmailNotifications(e.target.checked)}
+                  />
+                  <label htmlFor="email-notify" className="toggle-label"></label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Session & Security Section */}
+          <section className="settings-section">
+            <div className="section-header">
+              <h2>Session & Security</h2>
+            </div>
+            <div className="section-content">
+              <div className="security-info">
+                <p>To maintain your account security, you can sign out from all devices.</p>
+                <button onClick={handleLogout} className="btn btn-logout">
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </section>
         </div>
-    );
+      </main>
+    </div>
+  );
 };
 
 export default Settings;

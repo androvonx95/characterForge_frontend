@@ -192,7 +192,6 @@ export default function App() {
   const [session, setSession] = useState<any>(null);
   const [page, setPage] = useState<'dashboard' | 'my-chats' | 'conversation' | 'settings'>('dashboard');
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleNavigate = (newPage: 'dashboard' | 'my-chats' | 'conversation' | 'settings', conversationId?: string) => {
     if (conversationId) {
