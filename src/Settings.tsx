@@ -44,18 +44,39 @@ const Settings = ({ onNavigate }: SettingsProps) => {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+    if (newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
       return;
     }
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        setPasswordError('Not authenticated');
+        setLoading(false);
+        return;
+      }
+
+      const token = data.session.access_token;
+      const response = await fetch('https://fdefjilkbllgjldtqwwe.supabase.co/functions/v1/password-reset-self', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
       });
 
-      if (error) throw error;
+      const result = await response.json();
+
+      if (!response.ok) {
+        setPasswordError(result.error || 'Failed to update password');
+        return;
+      }
 
       setPasswordMessage('Password updated successfully');
       setCurrentPassword('');
