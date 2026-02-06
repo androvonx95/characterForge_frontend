@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import supabase from './supabaseClient';
 import { Sidebar } from './components/Sidebar';
 import { useSidebar } from './components/SidebarProvider';
@@ -61,8 +62,13 @@ const Settings = ({ onNavigate }: SettingsProps) => {
 
       const email = sessionData.session.user.email;
 
-      // Verify current password by attempting to sign in
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      // Verify current password using a throwaway client so we don't
+      // disturb the active session on the main supabase instance
+      const tempClient = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_ANON_KEY
+      );
+      const { error: signInError } = await tempClient.auth.signInWithPassword({
         email,
         password: currentPassword,
       });
