@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import supabase from './supabaseClient';
 import { Sidebar } from './components/Sidebar';
 import { useSidebar } from './components/SidebarProvider';
@@ -62,18 +61,20 @@ const Settings = ({ onNavigate }: SettingsProps) => {
 
       const email = sessionData.session.user.email;
 
-      // Verify current password using a throwaway client so we don't
-      // disturb the active session on the main supabase instance
-      const tempClient = createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_ANON_KEY
+      // Verify current password via a raw REST call — no client or session involved
+      const verifyResp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/auth/v1/token?grant_type=password`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ email, password: currentPassword }),
+        }
       );
-      const { error: signInError } = await tempClient.auth.signInWithPassword({
-        email,
-        password: currentPassword,
-      });
 
-      if (signInError) {
+      if (!verifyResp.ok) {
         setPasswordError('Current password is incorrect');
         return;
       }
