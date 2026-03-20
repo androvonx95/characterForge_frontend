@@ -1,37 +1,49 @@
 /* Reset and base styles */
 html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    color: #ffffff;
-  }
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+html.light-theme body {
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+  transition: var(--transition-base);
+}
+
+/* Main chat wrapper - centered with constrained width */
+.chat-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--bg-color);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+  transition: var(--transition-base);
+}
   
-  /* Main chat wrapper - centered with constrained width */
-  .chat-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    max-width: 900px; /* Constrain overall chat width */
-    margin: 0 auto; /* Center the entire chat interface */
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5); /* Add subtle shadow for depth */
-  }
-  
-  /* Header with bot info */
-  .chat-header {
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    position: relative;
-    z-index: 100;
-  }
+/* Header with bot info */
+.chat-header {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-light);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: var(--transition-base);
+}
   
   .bot-avatar {
     width: 48px;
@@ -147,20 +159,25 @@ html, body {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
   }
   
-  .message-bubble.user {
-    background: linear-gradient(135deg, #6d6c6c 0%, #535253 100%);
-    color: white;
-    border-bottom-right-radius: 6px;
-    margin-left: auto;
-  }
-  
-  .message-bubble.character {
-    background: rgba(27, 27, 27, 0.9);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-bottom-left-radius: 6px;
-    backdrop-filter: blur(10px);
-  }
+.message-bubble.user {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom-right-radius: 6px;
+  margin-left: auto;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.message-bubble.character {
+  background: var(--bg-secondary);
+  color: var(--text-color);
+  border: 1px solid var(--border-light);
+  border-bottom-left-radius: 6px;
+  backdrop-filter: blur(10px);
+}
+
+html.light-theme .message-bubble.character {
+  border-color: #d0d0d0;
+}
   
   /* Message actions */
   .message-actions {
@@ -220,42 +237,44 @@ html, body {
     background: rgba(40, 167, 69, 0.5);
   }
   
-  /* Input container - simplified since wrapper handles centering */
-  .input-container {
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    gap: 12px;
-    align-items: flex-end;
-  }
-  
-  .message-input {
-    flex: 1;
-    background: rgba(45, 45, 45, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 24px;
-    padding: 14px 20px;
-    color: white;
-    font-size: 15px;
-    line-height: 1.4;
-    resize: none;
-    outline: none;
-    transition: all 0.2s ease;
-    backdrop-filter: blur(10px);
-    max-height: 120px;
-    min-height: 48px;
-  }
-  
-  .message-input:focus {
-    border-color: rgba(102, 126, 234, 0.6);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-  }
-  
-  .message-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-  }
+/* Input container - simplified since wrapper handles centering */
+.input-container {
+  padding: 20px;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+  transition: var(--transition-base);
+}
+
+.message-input {
+  flex: 1;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 24px;
+  padding: 14px 20px;
+  color: var(--text-color);
+  font-size: 15px;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  transition: var(--transition-base);
+  backdrop-filter: blur(10px);
+  max-height: 120px;
+  min-height: 48px;
+}
+
+.message-input:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--input-focus);
+}
+
+.message-input::placeholder {
+  color: var(--text-secondary);
+}
   
   .send-btn {
     background: linear-gradient(135deg, #667eea 0%, #624381 100%);

@@ -28,7 +28,22 @@ const Settings = ({ onNavigate }: SettingsProps) => {
       }
     };
     getUser();
+
+    // Load saved theme preference
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    setDarkMode(savedTheme === 'dark');
+    applyTheme(savedTheme === 'dark');
   }, []);
+
+  const applyTheme = (isDark: boolean) => {
+    const htmlElement = document.documentElement;
+    if (isDark) {
+      htmlElement.classList.remove('light-theme');
+    } else {
+      htmlElement.classList.add('light-theme');
+    }
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  };
 
   const handlePasswordChange = async () => {
     setPasswordMessage('');
@@ -215,7 +230,10 @@ const Settings = ({ onNavigate }: SettingsProps) => {
                     type="checkbox"
                     id="dark-mode"
                     checked={darkMode}
-                    onChange={(e) => setDarkMode(e.target.checked)}
+                    onChange={(e) => {
+                      setDarkMode(e.target.checked);
+                      applyTheme(e.target.checked);
+                    }}
                   />
                   <label htmlFor="dark-mode" className="toggle-label"></label>
                 </div>
