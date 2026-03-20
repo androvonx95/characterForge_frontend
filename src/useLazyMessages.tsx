@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { getCharacterById, type Character } from './getCharacterInfo';
 import { sendAiMessage } from './aiChat';
+import './styles/chatUI.css';
+import type { Message } from './types';
 
 interface LazyBotIntroProps {
   characterId: string;
@@ -12,6 +14,7 @@ interface LazyBotIntroProps {
 interface CharacterPrompt {
   description: string;
   startingMessage: string;
+  imageUrl?: string;
 }
 
 export default function LazyBotIntro({
@@ -25,7 +28,9 @@ export default function LazyBotIntro({
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  let imageUrl = 'https://imgs.search.brave.com/pnuCjus6wNu_B0lj4soEUb4KKx9_pn-HorGYVHwBMwY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4t/aWNvbnMtcG5nLmZs/YXRpY29uLmNvbS8x/MjgvMTIyMjUvMTIy/MjU4ODEucG5n';
 
   useEffect(() => {
     const fetchCharacter = async () => {
@@ -41,6 +46,7 @@ export default function LazyBotIntro({
               ? JSON.parse(result.prompt)
               : { description: '', startingMessage: '' };
             setPromptData(parsed);
+            imageUrl = parsed.imageUrl || imageUrl;
           } catch (err) {
             console.error('Failed to parse prompt JSON', err);
             setPromptData({ description: '', startingMessage: '' });
@@ -56,13 +62,18 @@ export default function LazyBotIntro({
     fetchCharacter();
   }, [characterId]);
 
+  // Auto-scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
   const handleSend = async () => {
     if (!character) return;
 
     const trimmedMessage = input.trim();
     if (!trimmedMessage && !promptData?.startingMessage) return;
 
-    setLoading(true);
+    setIsSending(true);
     setError(null);
 
     try {
@@ -105,76 +116,131 @@ export default function LazyBotIntro({
       console.error(err);
       setError(err?.message || 'Something went wrong');
     } finally {
-      setLoading(false);
+      setIsSending(false);
     }
   };
 
-  if (loading) return <p>Loading bot...</p>;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
-  if (!character) return null;
-
-  // Shared styles
-  const botInfoContainerStyle: React.CSSProperties = {
-    marginBottom: '20px',
-    padding: '10px',
-    backgroundColor: '#f9f9f9',
-    borderRadius: '8px',
-    border: '1px solid #ddd',
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
-  const botNameStyle: React.CSSProperties = {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    marginBottom: '5px',
+  // Get bot initials for avatar
+  const getBotInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
+
+  if (loading) {
+    return (
+      <div className="chat-wrapper">
+        <div className="loading-indicator">
+          <span>Loading character...</span>
+          <div className="loading-dots">
+            <div className="loading-dot"></div>
+            <div className="loading-dot"></div>
+            <div className="loading-dot"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="chat-wrapper">
+        <div className="error-message">{error}</div>
+        <button onClick={() => onNavigate('dashboard')} className="back-btn-header">
+          ← Back to Dashboard
+        </button>
+      </div>
+    );
+  }
+
+  if (!character || !promptData) return null;
 
   return (
-    <div>
-      {/* Bot Info Section */}
-      <div style={botInfoContainerStyle}>
-        <h2 style={botNameStyle}>{character.name || 'Unknown Bot'}</h2>
-        {/* {promptData?.description && (
-          <p style={botDescriptionStyle}>{promptData.description}</p>
-        )}
-        {promptData?.startingMessage && (
-          <p style={startingMessageStyle}>{promptData.startingMessage}</p>
-        )} */}
-      </div>
+    <div className="chat-wrapper">
+      {/* Header with bot info */}
+      <div className="chat-header">
+        <div className="bot-avatar">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={character.name || 'Bot'}
+              className="bot-avatar-image"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://imgs.search.brave.com/pnuCjus6wNu_B0lj4soEUb4KKx9_pn-HorGYVHwBMwY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4t/aWNvbnMtcG5nLmZs/YXRpY29uLmNvbS8x/MjgvMTIyMjUvMTIy/MjU4ODEucG5n';
+              }}
+            />
+          ) : (
+            getBotInitials(character.name || '')
+          )}
+        </div>
 
-      {/* Messages Section */}
-      <div
-        style={{ height: "400px", overflowY: "auto", border: "1px solid gray", padding: "8px" }}
-        ref={containerRef}
-      >
-          <div>
-            <strong>AI:</strong> {promptData?.startingMessage}
-          </div>
-
-      </div>
-      {/* Input Section */}
-      <div style={{ marginTop: '1rem' }}>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
-          disabled={loading}
-          style={{ width: '70%' }}
-        />
-        <button
-          onClick={handleSend}
-          disabled={loading || (!input.trim() && !promptData?.startingMessage)}
+        <div className="bot-info">
+          <h1 className="bot-name">{character.name || 'Loading...'}</h1>
+          <p className="bot-description">
+            {promptData.description || 'Chat with your AI assistant'}
+          </p>
+        </div>
+        <button 
+          onClick={() => onNavigate('dashboard')} 
+          className="back-btn-header"
         >
-          {loading ? 'Sending...' : 'Send'}
+          ← Back
         </button>
       </div>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {/* Messages Container */}
+      <div className="chat-container">
+        {/* Intro message from character */}
+        <div className="message-wrapper character">
+          <div className="message-bubble character">
+            {promptData.startingMessage}
+          </div>
+        </div>
+        <div ref={messagesEndRef} />
+      </div>
 
-      {/* Back to dashboard */}
-      <button onClick={() => onNavigate('dashboard')} style={{ marginTop: '10px' }}>
-        Back
-      </button>
+      {/* Error message */}
+      {error && <div className="error-message">{error}</div>}
+
+      {/* Input Container */}
+      <div className="input-container">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Type a message..."
+          disabled={isSending}
+          className="message-input"
+          rows={1}
+          style={{
+            height: 'auto',
+            minHeight: '48px',
+            maxHeight: '120px',
+          }}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = 'auto';
+            target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
+          }}
+        />
+        <button 
+          onClick={handleSend} 
+          disabled={isSending || (!input.trim() && !promptData.startingMessage)} 
+          className="send-btn"
+        >
+          {isSending ? 'Sending...' : 'Send'}
+        </button>
+      </div>
     </div>
   );
 }
