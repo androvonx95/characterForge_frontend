@@ -48,11 +48,29 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
     imageUrl: string;
   }>(null);
 
+  // Track auth state for re-fetching
+  const [authState, setAuthState] = useState<any>(null);
+
+  // Listen for auth changes
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthState(session);
+    });
+
+    // Also get initial session
+    supabase.auth.getSession().then(({ data }) => {
+      setAuthState(data.session);
+    });
+
+    return () => listener?.subscription.unsubscribe();
+  }, []);
+
+  // Fetch characters whenever auth state changes
   useEffect(() => {
     const getCharacters = async () => {
+      setLoading(true);
       try {
-        const { data } = await supabase.auth.getSession();
-        const t = data.session?.access_token || null;
+        const t = authState?.access_token || null;
         setToken(t);
 
         // Fetch user's characters only if authenticated
@@ -60,23 +78,40 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
           const myResponse = await fetch(import.meta.env.VITE_MY_CHARACTERS, {
             headers: { Authorization: `Bearer ${t}` },
           });
-          const myChars = await myResponse.json();
-          setMyCharacters(myChars);
+          
+          if (!myResponse.ok) {
+            console.error('[v0] My characters fetch failed:', myResponse.status);
+          } else {
+            const myChars = await myResponse.json();
+            setMyCharacters(Array.isArray(myChars) ? myChars : []);
+          }
+        } else {
+          setMyCharacters([]);
         }
 
         // Always fetch public characters (works with or without auth)
-        const publicResponse = await fetch(import.meta.env.VITE_GET_PUBLIC_CHARS_EDGE_FUNC, {
+        const endpointUrl = import.meta.env.VITE_GET_PUBLIC_CHARS_EDGE_FUNC;
+        console.log('[v0] Fetching public characters from:', endpointUrl, 'with token:', !!t);
+        
+        const publicResponse = await fetch(endpointUrl, {
+          method: 'GET',
           ...(t && { headers: { Authorization: `Bearer ${t}` } }),
         });
         
+        console.log('[v0] Public characters response status:', publicResponse.status);
+        
         if (!publicResponse.ok) {
-          console.error('[v0] Public characters fetch failed:', publicResponse.status, publicResponse.statusText);
+          const errorText = await publicResponse.text();
+          console.error('[v0] Public characters fetch failed:', publicResponse.status, publicResponse.statusText, 'body:', errorText);
+          throw new Error(`Failed to fetch public characters: ${publicResponse.statusText}`);
         }
         
         const publicChars = await publicResponse.json();
-        console.log('[v0] Public characters received:', publicChars);
+        console.log('[v0] Public characters received:', publicChars?.length || 0, 'items');
         setPublicCharacters(Array.isArray(publicChars) ? publicChars : []);
+        setError(null);
       } catch (err) {
+        console.error('[v0] Error fetching characters:', err);
         setError((err as any).message || 'Failed to fetch characters');
       } finally {
         setLoading(false);
@@ -84,7 +119,7 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
     };
 
     getCharacters();
-  }, []);
+  }, [authState]);
 
 
   if (activeConversationId) {
