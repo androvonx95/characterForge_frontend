@@ -71,14 +71,12 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
       setLoading(true);
       try {
         const t = authState?.access_token || null;
-        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        if (!anonKey) { throw new Error('Missing VITE_SUPABASE_ANON_KEY'); }
         setToken(t);
 
         // Fetch user's characters only if authenticated
         if (t) {
           const myResponse = await fetch(import.meta.env.VITE_MY_CHARACTERS, {
-            headers: { Authorization: `Bearer ${anonKey}` },
+            headers: { Authorization: `Bearer ${t}` },
           });
 
           if (!myResponse.ok) {
