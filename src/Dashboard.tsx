@@ -90,12 +90,19 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
         }
 
         // Always fetch public characters (works with or without auth)
-        const endpointUrl = import.meta.env.VITE_GET_PUBLIC_CHARS_EDGE_FUNC;
+        const endpointUrl = import.meta.env.VITE_GET_CHARACTER_BY_ID;
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
         console.log('[v0] Fetching public characters from:', endpointUrl, 'with token:', !!t);
 
+        //     const t = authState?.access_token || null;
+        // const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        // if (!anonKey) { throw new Error('Missing VITE_SUPABASE_ANON_KEY'); }
+        // setToken(t);
+
+        // console.log(import.meta.env.VITE_GET_PUBLIC_CHARS_EDGE_FUNC);
         const publicResponse = await fetch(endpointUrl, {
           method: 'GET',
-          ...(t && { headers: { Authorization: `Bearer ${t}` } }),
+          ...(t && { headers: { Authorization: `Bearer ${anonKey}` } }),
         });
 
         console.log('[v0] Public characters response status:', publicResponse.status);
