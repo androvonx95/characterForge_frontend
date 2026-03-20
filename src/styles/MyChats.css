@@ -10,22 +10,23 @@
   width: 100%;
   min-height: 100vh;
   padding: 1rem 0;
-  background-color: #121212;
-  color: #eee;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding-top: 100px; /* space for fixed header */
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  padding-top: 100px;
   display: flex;
   justify-content: center;
+  transition: var(--transition-base);
 }
 
 /* Centered fixed-width content */
 .myChats-content {
   width: 100%;
-  max-width: 700px;
-  padding: 0 1rem;
+  max-width: 800px;
+  padding: 0 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 /* Fixed full-width header */
@@ -34,19 +35,22 @@
   top: 0;
   left: 0;
   right: 0;
-  background: #121212;
-  padding: 1rem;
+  background: var(--card-bg);
+  padding: 1.25rem 1.5rem;
   z-index: 1000;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-light);
   display: flex;
   justify-content: center;
   align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  transition: var(--transition-base);
 }
 
 /* Header content area (centered inside fixed bar) */
 .myChats-header-content {
   width: 100%;
-  max-width: 700px;
+  max-width: 800px;
   position: relative;
   display: flex;
   justify-content: center;
@@ -57,22 +61,21 @@
 .myChats-dashboardBtn {
   position: absolute;
   left: 0;
-  padding: 10px 16px;
-  border-radius: 6px;
+  padding: 10px 18px;
+  border-radius: 10px;
   border: none;
-  background-color: #d6336c;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
   color: white;
   font-weight: 600;
   cursor: pointer;
-  font-size: 1rem;
-  box-shadow: 0 2px 6px rgba(214, 51, 108, 0.7);
-  transition: background-color 0.3s, box-shadow 0.3s, transform 0.2s;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(255, 64, 129, 0.3);
+  transition: var(--transition-base);
 }
 
 .myChats-dashboardBtn:hover {
-  background-color: #b8295a;
-  box-shadow: 0 4px 12px rgba(214, 51, 108, 0.9);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 64, 129, 0.4);
 }
 
 /* Page title */
@@ -81,6 +84,10 @@
   font-weight: 700;
   font-size: 2rem;
   text-align: center;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Chat card list */
@@ -92,85 +99,88 @@
 
 /* Chat card styling */
 .myChats-card {
-  background-color: #1f1f1f;
-  border-radius: 12px;
-  padding: 0.75rem 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: var(--card-bg);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-base);
   outline: none;
   user-select: none;
-  border: 1px solid transparent;
   display: flex;
   flex-direction: column;
   justify-content: center;
-
-  /* 🚫 Removed: height: 70px; */
+  position: relative;
 }
-
 
 /* Chat card hover */
 .myChats-card:hover,
 .myChats-card:focus {
-  background-color: #252525;
-  border: 1px solid #d6336c;
-  box-shadow: 0 4px 16px rgba(214, 51, 108, 0.3);
+  background: var(--card-hover);
+  border-color: var(--accent-color);
+  box-shadow: 0 8px 24px rgba(255, 64, 129, 0.2);
   outline: none;
+  transform: translateY(-2px);
 }
 
 /* Bot name */
 .myChats-botName {
   font-weight: 700;
-  font-size: 1.2rem;
-  margin-bottom: 4px;
-  white-space: normal;       /* Allow wrapping */
+  font-size: 1.15rem;
+  margin-bottom: 6px;
+  white-space: normal;
+  color: var(--text-color);
   overflow: hidden;
-  text-overflow: ellipsis;   /* Still adds "..." if too long */
+  text-overflow: ellipsis;
 }
+
 .myChats-cardHeader {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 14px;
+  margin-bottom: 10px;
 }
 
 .myChats-avatar {
-  width: 3.25rem; /* roughly 52px if base font-size is 16px */
-  height: 3.25rem;
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
   object-fit: cover;
   flex-shrink: 0;
-  background-color: #333;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.myChats-avatar {
-  transition: transform 0.2s ease;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+  border: 2px solid var(--border-light);
+  transition: var(--transition-base);
 }
 
 .myChats-card:hover .myChats-avatar {
-  transform: scale(1.05);
+  transform: scale(1.08);
+  border-color: var(--accent-color);
 }
+
 /* Last message preview */
 .myChats-lastMessage {
-  color: #ccc;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: normal;       /* Allow wrapping */
+  white-space: normal;
   display: -webkit-box;
-  -webkit-line-clamp: 2;     /* Limit to 2 lines */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  margin-bottom: 0;
+  margin-bottom: 6px;
+  line-height: 1.4;
 }
 
 /* Conversation ID */
 .myChats-conversationId {
-  color: #666;
-  font-size: 0.75rem;
-  font-style: italic;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
   user-select: text;
-  white-space: normal;       /* Allow full wrapping if long */
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Courier New', monospace;
 }
 
 
@@ -180,98 +190,99 @@
 .myChats-noChats {
   text-align: center;
   padding: 2rem 0;
+  font-size: 1.1rem;
 }
 
 .myChats-error {
-  color: #ff6666;
+  color: var(--error-color);
+  background: rgba(255, 107, 107, 0.1);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--error-color);
 }
 
-
-.myChats-deleteBtn {
-  background-color: #e74c3c;  /* A red color for the delete button */
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;  /* Smooth transition for hover effect */
-  display: inline-block;
-  text-align: center;
+.myChats-noChats {
+  color: var(--text-secondary);
 }
-
-.myChats-deleteBtn:hover {
-  background-color: #c0392b;  /* Darker red when hovered */
-  transform: translateY(-2px);  /* Slight lift effect on hover */
-}
-
-.myChats-deleteBtn:active {
-  background-color: #e74c3c;  /* Keep the original red color when pressed */
-  transform: translateY(0);  /* No lift effect when clicked */
-}
-
-.myChats-deleteBtn:focus {
-  outline: none;  /* Remove default focus outline */
-  box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);  /* Add a focus shadow effect */
-}
-
-
 
 /* Positioning the outermost div to be relative so we can position the button inside it */
 .myChats-cardWrapper {
-  position: relative;  /* This will act as the positioning reference for the delete button */
+  position: relative;
 }
 
 /* Style for the Delete button */
 .myChats-deleteBtn {
-  background-color: transparent;  /* Make it transparent to show the icon */
-  color: #e74c3c;  /* Red color for the trash icon */
-  font-size: 1.5rem;  /* Icon size */
+  background-color: transparent;
+  color: var(--error-color);
+  font-size: 1.4rem;
   border: none;
   cursor: pointer;
   padding: 0;
-  transition: transform 0.2s ease, color 0.3s ease;
-  position: absolute;  /* Positioning the button in the top-right */
-  top: 12px;  /* Space from the top */
-  right: 12px;  /* Space from the right edge */
-  z-index: 1;  /* Ensure it's above the content */
+  transition: var(--transition-base);
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: transparent;
 }
 
 .myChats-deleteBtn:hover {
-  color: #c0392b;  /* Darker red when hovered */
-  transform: scale(1.1);  /* Slight scale-up effect on hover */
+  color: white;
+  background: var(--error-color);
+  transform: scale(1.1);
 }
 
 .myChats-deleteBtn:focus {
-  outline: none;  /* Remove default outline */
-  box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);  /* Soft glow effect when focused */
+  outline: none;
+  box-shadow: 0 0 8px rgba(255, 107, 107, 0.3);
 }
 
 
 
 
 /* Mobile responsiveness */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .myChats-container {
-    padding-top: 80px;
+    padding-top: 90px;
   }
+
+  .myChats-content {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+
   .myChats-avatar {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 48px;
+    height: 48px;
   }
+
   .myChats-title {
     font-size: 1.5rem;
   }
 
   .myChats-dashboardBtn {
     font-size: 0.9rem;
-    padding: 8px 12px;
+    padding: 8px 14px;
   }
 
   .myChats-card {
-    height: auto;
-    padding: 0.75rem 1rem;
+    padding: 1rem;
+  }
+
+  .myChats-botName {
+    font-size: 1rem;
+  }
+
+  .myChats-deleteBtn {
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
   }
 }
 

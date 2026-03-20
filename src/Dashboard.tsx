@@ -13,7 +13,7 @@ import { useSidebar } from './components/SidebarProvider';
 import { getSignedUploadUrl, uploadFileToS3 } from './getSignedUploadUrl';
 import { useRealtimeCharacterSync } from './useRealtimeCharacterSync';
 
-export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation' | 'settings', conversationId?: string) => void }) {
+export default function Dashboard({ onNavigate, isAuthenticated = false, onShowAuthModal }: { onNavigate: (page: 'dashboard' | 'my-chats' | 'conversation' | 'settings', conversationId?: string) => void; isAuthenticated?: boolean; onShowAuthModal?: () => void }) {
   const DEFAULT_IMAGE_URL = "https://imgs.search.brave.com/SlAHcvHF1G6DX8aNn-45OSpTEyTI2Zy4Mr-DzvMrOyw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzk3LzM4/L2JkLzk3MzhiZGQy/NjU4YWY2MzczODdk/ZDUxNDRlM2FjNTI4/LmpwZw"
   const [myCharacters, setMyCharacters] = useState<any[]>([]);
   const [publicCharacters, setPublicCharacters] = useState<any[]>([]);
@@ -52,29 +52,21 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
     const getCharacters = async () => {
       try {
         const { data } = await supabase.auth.getSession();
-        if (!data.session) {
-          setError('You are not authenticated');
-          setLoading(false);
-          return;
-        }
-
-        const t = data.session.access_token;
-        if (!t) {
-          setError('No token found');
-          setLoading(false);
-          return;
-        }
-
+        const t = data.session?.access_token || null;
         setToken(t);
 
-        const myResponse = await fetch(import.meta.env.VITE_MY_CHARACTERS, {
-          headers: { Authorization: `Bearer ${t}` },
-        });
-        const myChars = await myResponse.json();
-        setMyCharacters(myChars);
+        // Fetch user's characters only if authenticated
+        if (t) {
+          const myResponse = await fetch(import.meta.env.VITE_MY_CHARACTERS, {
+            headers: { Authorization: `Bearer ${t}` },
+          });
+          const myChars = await myResponse.json();
+          setMyCharacters(myChars);
+        }
 
+        // Always fetch public characters (works with or without auth)
         const publicResponse = await fetch(import.meta.env.VITE_GET_PUBLIC_CHARS_EDGE_FUNC, {
-          headers: { Authorization: `Bearer ${t}` },
+          ...(t && { headers: { Authorization: `Bearer ${t}` } }),
         });
         const publicChars = await publicResponse.json();
         setPublicCharacters(publicChars);
@@ -109,7 +101,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
   if (activeBotId && token) {
     return (
       <div className="app-layout">
-        <Sidebar onNavigate={onNavigate} currentPage="dashboard" />
+        <Sidebar onNavigate={onNavigate} currentPage="dashboard" isAuthenticated={isAuthenticated} />
         <main className={`main-content ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
           <LazyBotIntro
             characterId={activeBotId}
@@ -132,7 +124,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
 
   return (
     <div className="app-layout">
-      <Sidebar onNavigate={onNavigate} currentPage="dashboard" />
+      <Sidebar onNavigate={onNavigate} currentPage="dashboard" isAuthenticated={isAuthenticated} />
       <main className={`main-content ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
         <div className="dashboard-container">
 
@@ -147,7 +139,13 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
               <button className="primary-button my-chats-button" onClick={() => onNavigate('my-chats')}>
                 💬 My Chats
               </button>
-              <button className="primary-button" onClick={() => setShowModal(true)}>+ Create Bot</button>
+              <button className="primary-button" onClick={() => {
+                if (!isAuthenticated) {
+                  onShowAuthModal?.();
+                } else {
+                  setShowModal(true);
+                }
+              }}>+ Create Bot</button>
             </div>
 
           {/* NEW: Horizontal bar layout for My Characters */}
@@ -156,7 +154,13 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
 
             <div 
               className="create-bot-circle" 
-              onClick={() => setShowModal(true)}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  onShowAuthModal?.();
+                } else {
+                  setShowModal(true);
+                }
+              }}
               title="Create Bot"
             ></div>
 
@@ -252,7 +256,13 @@ export default function Dashboard({ onNavigate }: { onNavigate: (page: 'dashboar
                         <div
                           key={char.id}
                           className="character-card"
-                          onClick={() => setActiveBotId(char.id.toString())}
+                          onClick={() => {
+                            if (!isAuthenticated) {
+                              onShowAuthModal?.();
+                            } else {
+                              setActiveBotId(char.id.toString());
+                            }
+                          }}
                         >
                           {/* ✅ ADD IMAGE */}
                           <img

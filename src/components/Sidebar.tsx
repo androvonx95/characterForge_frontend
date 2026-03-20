@@ -11,9 +11,10 @@ import "../styles/sidebar.css" // Optional: for custom styling
 interface SidebarProps {
   onNavigate?: (page: 'dashboard' | 'my-chats' | 'conversation' | 'settings', conversationId?: string) => void;
   currentPage?: 'dashboard' | 'my-chats' | 'conversation' | 'settings';
+  isAuthenticated?: boolean;
 }
 
-export function Sidebar({ onNavigate, currentPage }: SidebarProps) {
+export function Sidebar({ onNavigate, currentPage, isAuthenticated = false }: SidebarProps) {
   const { isOpen, toggle } = useSidebar()
 
   const handleNavigation = (page: 'dashboard' | 'my-chats' | 'settings') => {
@@ -24,23 +25,25 @@ export function Sidebar({ onNavigate, currentPage }: SidebarProps) {
 
   const items = [
     {
-      title: "Dashboard",
-      icon: <Home size={18} />,
+      title: "Explore",
+      icon: <Home size={20} />,
       onClick: () => handleNavigation('dashboard'),
       isActive: currentPage === 'dashboard'
     },
-    {
-      title: "My Chats",
-      icon: <MessageSquare size={18} />,
-      onClick: () => handleNavigation('my-chats'),
-      isActive: currentPage === 'my-chats'
-    },
-    {
-      title: "Settings",
-      icon: <Settings size={18} />,
-      onClick: () => handleNavigation('settings'),
-      isActive: currentPage === 'settings'
-    },
+    ...(isAuthenticated ? [
+      {
+        title: "My Chats",
+        icon: <MessageSquare size={20} />,
+        onClick: () => handleNavigation('my-chats'),
+        isActive: currentPage === 'my-chats'
+      },
+      {
+        title: "Settings",
+        icon: <Settings size={20} />,
+        onClick: () => handleNavigation('settings'),
+        isActive: currentPage === 'settings'
+      },
+    ] : []),
   ];
 
   return (
