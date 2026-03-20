@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeMinimal } from '@supabase/auth-ui-shared';
 import supabase from '../supabaseClient';
@@ -54,6 +55,18 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        onClose();
+      }
+    });
+
+    return () => listener?.subscription.unsubscribe();
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (

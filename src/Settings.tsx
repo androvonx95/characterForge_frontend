@@ -18,6 +18,7 @@ const Settings = ({ onNavigate }: SettingsProps) => {
   const [darkMode, setDarkMode] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const { isOpen } = useSidebar();
 
   useEffect(() => {
@@ -126,8 +127,8 @@ const Settings = ({ onNavigate }: SettingsProps) => {
   };
 
   return (
-    <div className="app-layout">
-      <Sidebar onNavigate={onNavigate} currentPage="settings" />
+  <div className="app-layout">
+  <Sidebar onNavigate={onNavigate} currentPage="settings" isAuthenticated={isAuthenticated} />
       <main className={`main-content ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
         <div className="settings-container">
           <div className="settings-header">

@@ -68,8 +68,14 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
         const publicResponse = await fetch(import.meta.env.VITE_GET_PUBLIC_CHARS_EDGE_FUNC, {
           ...(t && { headers: { Authorization: `Bearer ${t}` } }),
         });
+        
+        if (!publicResponse.ok) {
+          console.error('[v0] Public characters fetch failed:', publicResponse.status, publicResponse.statusText);
+        }
+        
         const publicChars = await publicResponse.json();
-        setPublicCharacters(publicChars);
+        console.log('[v0] Public characters received:', publicChars);
+        setPublicCharacters(Array.isArray(publicChars) ? publicChars : []);
       } catch (err) {
         setError((err as any).message || 'Failed to fetch characters');
       } finally {
@@ -234,9 +240,9 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
 
           </section>
           
-          {publicCharacters.length > 0 && (
-            <section className="dashboard-section">
-              <h2>All Characters</h2>
+          <section className="dashboard-section">
+            <h2>Explore Characters</h2>
+            {publicCharacters.length > 0 ? (
               <div className="character-card-grid">
                   {publicCharacters.map((char) => {
                       let description = "";
@@ -288,8 +294,12 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
                     })}
 
               </div>
-            </section>
-          )}
+            ) : (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                <p>No public characters available yet. Check back soon!</p>
+              </div>
+            )}
+          </section>
 
       {showModal && (
         <div className="modal-overlay">
