@@ -94,10 +94,18 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
 
         const endpointUrl = import.meta.env.VITE_GET_PUBLIC_CHARS_EDGE_FUNC;
         console.log('[v0] Fetching public characters from:', endpointUrl, 'with token:', !!t);
+        let headers: any = {
+          'Content-Type': 'application/json',
+        };
 
+        if (t) {
+          headers.Authorization = `Bearer ${t}`;
+        } else {
+          headers.Authorization = `Bearer ${anonKey}`;
+        }
         const publicResponse = await fetch(endpointUrl, {
           method: 'GET',
-          ...(t && { headers: { Authorization: `Bearer ${anonKey}` } }),
+          headers,
         });
 
         console.log('[v0] Public characters response status:', publicResponse.status);
