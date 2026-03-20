@@ -38,7 +38,7 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
 
   // Get sidebar state for responsive layout
   const { isOpen } = useSidebar();
-  
+
   useRealtimeCharacterSync(token, setPublicCharacters);
   const [previewCharacter, setPreviewCharacter] = useState<null | {
     id: string;
@@ -71,14 +71,16 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
       setLoading(true);
       try {
         const t = authState?.access_token || null;
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        if (!anonKey) { throw new Error('Missing VITE_SUPABASE_ANON_KEY'); }
         setToken(t);
 
         // Fetch user's characters only if authenticated
         if (t) {
           const myResponse = await fetch(import.meta.env.VITE_MY_CHARACTERS, {
-            headers: { Authorization: `Bearer ${t}` },
+            headers: { Authorization: `Bearer ${anonKey}` },
           });
-          
+
           if (!myResponse.ok) {
             console.error('[v0] My characters fetch failed:', myResponse.status);
           } else {
@@ -92,20 +94,20 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
         // Always fetch public characters (works with or without auth)
         const endpointUrl = import.meta.env.VITE_GET_PUBLIC_CHARS_EDGE_FUNC;
         console.log('[v0] Fetching public characters from:', endpointUrl, 'with token:', !!t);
-        
+
         const publicResponse = await fetch(endpointUrl, {
           method: 'GET',
           ...(t && { headers: { Authorization: `Bearer ${t}` } }),
         });
-        
+
         console.log('[v0] Public characters response status:', publicResponse.status);
-        
+
         if (!publicResponse.ok) {
           const errorText = await publicResponse.text();
           console.error('[v0] Public characters fetch failed:', publicResponse.status, publicResponse.statusText, 'body:', errorText);
           throw new Error(`Failed to fetch public characters: ${publicResponse.statusText}`);
         }
-        
+
         const publicChars = await publicResponse.json();
         console.log('[v0] Public characters received:', publicChars?.length || 0, 'items');
         setPublicCharacters(Array.isArray(publicChars) ? publicChars : []);
@@ -189,144 +191,144 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
               }}>+ Create Bot</button>
             </div>
 
-          {/* NEW: Horizontal bar layout for My Characters */}
-          <div className="my-characters-bar">
-            <span className="my-characters-label">YOUR BOTS</span>
+            {/* NEW: Horizontal bar layout for My Characters */}
+            <div className="my-characters-bar">
+              <span className="my-characters-label">YOUR BOTS</span>
 
-            <div 
-              className="create-bot-circle" 
-              onClick={() => {
-                if (!isAuthenticated) {
-                  onShowAuthModal?.();
-                } else {
-                  setShowModal(true);
-                }
-              }}
-              title="Create Bot"
-            ></div>
-
-            {myCharacters.map((char) => {
-              let imageUrl = DEFAULT_IMAGE_URL;
-
-              if (typeof char.prompt === "string") {
-                try {
-                  const parsed = JSON.parse(char.prompt);
-                  imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
-                } catch {
-                  // Use default image
-                }
-              }
-
-              return (
-                <div key={char.id} className="my-character-avatar-wrapper">
-                  <img
-                    src={imageUrl}
-                    alt={char.name}
-                    className="my-character-avatar"
-                    title={char.name}
-                    onClick={() => {
-                      let imageUrl = DEFAULT_IMAGE_URL;
-                      let description = '';
-                      if (typeof char.prompt === "string") {
-                        try {
-                          const parsed = JSON.parse(char.prompt);
-                          imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
-                          description = parsed.description || '';
-                        } catch {
-                          // fallback
-                        }
-                      }
-
-                      setPreviewCharacter({
-                        id: char.id,
-                        name: char.name,
-                        private: char.private,
-                        description,
-                        imageUrl,
-                      });
-                    }}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL;
-                    }}
-                  />
-                  <span className="my-character-name" title={char.name}>
-                    {char.name}
-                  </span>
-                </div>
-              );
-            })}
-
-            {/* ✅ Modal rendered once, after the loop */}
-            {previewCharacter && (
-              <CharacterPreviewModal
-                id={previewCharacter.id}
-                name={previewCharacter.name}
-                description={previewCharacter.description}
-                imageUrl={previewCharacter.imageUrl}
-                private={previewCharacter.private}
-                onClose={() => setPreviewCharacter(null)}
-                onDelete={(id) => {
-                  setMyCharacters((prev) => prev.filter((char) => char.id !== id));
-                  setPreviewCharacter(null);
+              <div
+                className="create-bot-circle"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    onShowAuthModal?.();
+                  } else {
+                    setShowModal(true);
+                  }
                 }}
-              />
-            )}
-          </div>
+                title="Create Bot"
+              ></div>
+
+              {myCharacters.map((char) => {
+                let imageUrl = DEFAULT_IMAGE_URL;
+
+                if (typeof char.prompt === "string") {
+                  try {
+                    const parsed = JSON.parse(char.prompt);
+                    imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
+                  } catch {
+                    // Use default image
+                  }
+                }
+
+                return (
+                  <div key={char.id} className="my-character-avatar-wrapper">
+                    <img
+                      src={imageUrl}
+                      alt={char.name}
+                      className="my-character-avatar"
+                      title={char.name}
+                      onClick={() => {
+                        let imageUrl = DEFAULT_IMAGE_URL;
+                        let description = '';
+                        if (typeof char.prompt === "string") {
+                          try {
+                            const parsed = JSON.parse(char.prompt);
+                            imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
+                            description = parsed.description || '';
+                          } catch {
+                            // fallback
+                          }
+                        }
+
+                        setPreviewCharacter({
+                          id: char.id,
+                          name: char.name,
+                          private: char.private,
+                          description,
+                          imageUrl,
+                        });
+                      }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL;
+                      }}
+                    />
+                    <span className="my-character-name" title={char.name}>
+                      {char.name}
+                    </span>
+                  </div>
+                );
+              })}
+
+              {/* ✅ Modal rendered once, after the loop */}
+              {previewCharacter && (
+                <CharacterPreviewModal
+                  id={previewCharacter.id}
+                  name={previewCharacter.name}
+                  description={previewCharacter.description}
+                  imageUrl={previewCharacter.imageUrl}
+                  private={previewCharacter.private}
+                  onClose={() => setPreviewCharacter(null)}
+                  onDelete={(id) => {
+                    setMyCharacters((prev) => prev.filter((char) => char.id !== id));
+                    setPreviewCharacter(null);
+                  }}
+                />
+              )}
+            </div>
 
           </section>
-          
+
           <section className="dashboard-section">
             <h2>Explore Characters</h2>
             {publicCharacters.length > 0 ? (
               <div className="character-card-grid">
-                  {publicCharacters.map((char) => {
-                      let description = "";
-                      let imageUrl = DEFAULT_IMAGE_URL;
+                {publicCharacters.map((char) => {
+                  let description = "";
+                  let imageUrl = DEFAULT_IMAGE_URL;
 
-                      if (typeof char.prompt === "string") {
-                        try {
-                          const parsed = JSON.parse(char.prompt);
-                          description = parsed.description || "";
-                          imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
-                        } catch {
-                          description = "";
+                  if (typeof char.prompt === "string") {
+                    try {
+                      const parsed = JSON.parse(char.prompt);
+                      description = parsed.description || "";
+                      imageUrl = parsed.imageUrl || DEFAULT_IMAGE_URL;
+                    } catch {
+                      description = "";
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={char.id}
+                      className="character-card"
+                      onClick={() => {
+                        if (!isAuthenticated) {
+                          onShowAuthModal?.();
+                        } else {
+                          setActiveBotId(char.id.toString());
                         }
-                      }
+                      }}
+                    >
+                      {/* ✅ ADD IMAGE */}
+                      <img
+                        src={imageUrl}
+                        alt={char.name}
+                        className="character-image"
+                        onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL }}
+                      />
 
-                      return (
-                        <div
-                          key={char.id}
-                          className="character-card"
-                          onClick={() => {
-                            if (!isAuthenticated) {
-                              onShowAuthModal?.();
-                            } else {
-                              setActiveBotId(char.id.toString());
-                            }
-                          }}
-                        >
-                          {/* ✅ ADD IMAGE */}
-                          <img
-                            src={imageUrl}
-                            alt={char.name}
-                            className="character-image"
-                            onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_IMAGE_URL }}
-                          />
+                      <div className="character-card-header">
+                        <h3>{char.name}</h3>
+                        <span className="visibility-badge public">Public</span>
+                      </div>
 
-                          <div className="character-card-header">
-                            <h3>{char.name}</h3>
-                            <span className="visibility-badge public">Public</span>
-                          </div>
-
-                          {description && <p className="character-description">{description}</p>}
-                          {char.createdAt && (
-                            <p className="character-date">
-                              Created: {new Date(char.createdAt).toLocaleDateString()}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })}
+                      {description && <p className="character-description">{description}</p>}
+                      {char.createdAt && (
+                        <p className="character-date">
+                          Created: {new Date(char.createdAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
 
               </div>
             ) : (
@@ -336,129 +338,129 @@ export default function Dashboard({ onNavigate, isAuthenticated = false, onShowA
             )}
           </section>
 
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Create a New Character</h3>
-            <input
-              className="modal-input"
-              placeholder="Character Name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-            />
-            <textarea
-              className="modal-textarea"
-              placeholder="Character Description"
-              value={newDescription}
-              onChange={(e) => setNewDescription(e.target.value)}
-            />
-            <textarea
-              className="modal-textarea"
-              placeholder="Starting Message"
-              value={newStartingMessage}
-              onChange={(e) => setNewStartingMessage(e.target.value)}
-            />
+          {showModal && (
+            <div className="modal-overlay">
+              <div className="modal">
+                <h3>Create a New Character</h3>
+                <input
+                  className="modal-input"
+                  placeholder="Character Name"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                />
+                <textarea
+                  className="modal-textarea"
+                  placeholder="Character Description"
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                />
+                <textarea
+                  className="modal-textarea"
+                  placeholder="Starting Message"
+                  value={newStartingMessage}
+                  onChange={(e) => setNewStartingMessage(e.target.value)}
+                />
 
-            {/* 👇 Image Upload */}
-            <div style={{ marginTop: '1rem' }}>
-              <label className="checkbox-label">Upload Character Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-              />
-              {uploadingImage && <p>Uploading image...</p>}
-              {imageUrl && <p style={{ fontSize: '0.9em' }}>✅ Uploaded</p>}
-            </div>
+                {/* 👇 Image Upload */}
+                <div style={{ marginTop: '1rem' }}>
+                  <label className="checkbox-label">Upload Character Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                  />
+                  {uploadingImage && <p>Uploading image...</p>}
+                  {imageUrl && <p style={{ fontSize: '0.9em' }}>✅ Uploaded</p>}
+                </div>
 
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={isPrivate}
-                onChange={() => setIsPrivate((p) => !p)}
-              />
-              {' '}Private
-            </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={isPrivate}
+                    onChange={() => setIsPrivate((p) => !p)}
+                  />
+                  {' '}Private
+                </label>
 
-            <div className="modal-actions">
-              <button
-                className="primary-button"
-                disabled={creating || uploadingImage}
-                onClick={async () => {
-                  setCreating(true);
-                  try {
-                    let uploadedUrl: string | null = imageUrl;
+                <div className="modal-actions">
+                  <button
+                    className="primary-button"
+                    disabled={creating || uploadingImage}
+                    onClick={async () => {
+                      setCreating(true);
+                      try {
+                        let uploadedUrl: string | null = imageUrl;
 
-                    if (imageFile && !uploadedUrl) {
-                      setUploadingImage(true);
-                      const res = await getSignedUploadUrl(imageFile.name, imageFile.type);
-                      if (!res) throw new Error("Could not get signed upload URL");
+                        if (imageFile && !uploadedUrl) {
+                          setUploadingImage(true);
+                          const res = await getSignedUploadUrl(imageFile.name, imageFile.type);
+                          if (!res) throw new Error("Could not get signed upload URL");
 
-                      const success = await uploadFileToS3(res.signedUrl, imageFile);
-                      if (!success) throw new Error("Failed to upload image");
+                          const success = await uploadFileToS3(res.signedUrl, imageFile);
+                          if (!success) throw new Error("Failed to upload image");
 
-                      uploadedUrl = res.fileUrl;
-                      setImageUrl(uploadedUrl);
-                    }
+                          uploadedUrl = res.fileUrl;
+                          setImageUrl(uploadedUrl);
+                        }
 
-                    const promptObj = {
-                      description: newDescription,
-                      startingMessage: newStartingMessage,
-                      imageUrl: uploadedUrl, // 👈 include uploaded image URL
-                    };
-                    const result = await createCharacter({
-                      name: newName,
-                      prompt: JSON.stringify(promptObj),
-                      private: isPrivate,
-                    });
-
-                    setMyCharacters((prev) => [
-                      ...prev,
-                      {
-                        id: result.id || Date.now(),
-                        name: newName,
-                        private: isPrivate,
-                        prompt: JSON.stringify(promptObj),
-                      },
-                    ]);
-
-                    // If the character is public, also add it to public characters
-                    if (!isPrivate) {
-                      setPublicCharacters((prev) => [
-                        {
-                          id: result.id || Date.now(),
+                        const promptObj = {
+                          description: newDescription,
+                          startingMessage: newStartingMessage,
+                          imageUrl: uploadedUrl, // 👈 include uploaded image URL
+                        };
+                        const result = await createCharacter({
                           name: newName,
-                          private: isPrivate,
                           prompt: JSON.stringify(promptObj),
-                          createdAt: new Date().toISOString(),
-                        },
-                        ...prev,
-                      ]);
-                    }
+                          private: isPrivate,
+                        });
 
-                    // Reset all
-                    setNewName('');
-                    setNewDescription('');
-                    setNewStartingMessage('');
-                    setImageFile(null);
-                    setImageUrl(null);
-                    setIsPrivate(true);
-                    setShowModal(false);
-                  } catch (err: any) {
-                    alert(err.message || "Failed to create character");
-                  } finally {
-                    setCreating(false);
-                    setUploadingImage(false);
-                  }
-                }}
-              >
-                {creating ? "Creating..." : "Create"}
-              </button>
-              <button className="cancel-button" onClick={() => setShowModal(false)}>Cancel</button>
+                        setMyCharacters((prev) => [
+                          ...prev,
+                          {
+                            id: result.id || Date.now(),
+                            name: newName,
+                            private: isPrivate,
+                            prompt: JSON.stringify(promptObj),
+                          },
+                        ]);
+
+                        // If the character is public, also add it to public characters
+                        if (!isPrivate) {
+                          setPublicCharacters((prev) => [
+                            {
+                              id: result.id || Date.now(),
+                              name: newName,
+                              private: isPrivate,
+                              prompt: JSON.stringify(promptObj),
+                              createdAt: new Date().toISOString(),
+                            },
+                            ...prev,
+                          ]);
+                        }
+
+                        // Reset all
+                        setNewName('');
+                        setNewDescription('');
+                        setNewStartingMessage('');
+                        setImageFile(null);
+                        setImageUrl(null);
+                        setIsPrivate(true);
+                        setShowModal(false);
+                      } catch (err: any) {
+                        alert(err.message || "Failed to create character");
+                      } finally {
+                        setCreating(false);
+                        setUploadingImage(false);
+                      }
+                    }}
+                  >
+                    {creating ? "Creating..." : "Create"}
+                  </button>
+                  <button className="cancel-button" onClick={() => setShowModal(false)}>Cancel</button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
         </div>
       </main>
