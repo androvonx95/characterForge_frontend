@@ -18,6 +18,7 @@ const Settings = ({ onNavigate }: SettingsProps) => {
   const [darkMode, setDarkMode] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const { isOpen } = useSidebar();
 
   useEffect(() => {
@@ -28,7 +29,22 @@ const Settings = ({ onNavigate }: SettingsProps) => {
       }
     };
     getUser();
+
+    // Load saved theme preference
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    setDarkMode(savedTheme === 'dark');
+    applyTheme(savedTheme === 'dark');
   }, []);
+
+  const applyTheme = (isDark: boolean) => {
+    const htmlElement = document.documentElement;
+    if (isDark) {
+      htmlElement.classList.remove('light-theme');
+    } else {
+      htmlElement.classList.add('light-theme');
+    }
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  };
 
   const handlePasswordChange = async () => {
     setPasswordMessage('');
@@ -111,8 +127,8 @@ const Settings = ({ onNavigate }: SettingsProps) => {
   };
 
   return (
-    <div className="app-layout">
-      <Sidebar onNavigate={onNavigate} currentPage="settings" />
+  <div className="app-layout">
+  <Sidebar onNavigate={onNavigate} currentPage="settings" isAuthenticated={isAuthenticated} />
       <main className={`main-content ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
         <div className="settings-container">
           <div className="settings-header">
@@ -215,7 +231,10 @@ const Settings = ({ onNavigate }: SettingsProps) => {
                     type="checkbox"
                     id="dark-mode"
                     checked={darkMode}
-                    onChange={(e) => setDarkMode(e.target.checked)}
+                    onChange={(e) => {
+                      setDarkMode(e.target.checked);
+                      applyTheme(e.target.checked);
+                    }}
                   />
                   <label htmlFor="dark-mode" className="toggle-label"></label>
                 </div>

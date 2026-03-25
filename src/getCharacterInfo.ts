@@ -46,3 +46,60 @@ export async function getCharacterById(characterId: string): Promise<Character |
     return null;
   }
 }
+
+// import supabase from './supabaseClient';
+
+// export interface Character {
+//   id: string;
+//   name: string;
+//   prompt: string;
+//   userId: string;
+//   createdAt: string;
+//   updatedAt: string;
+//   private: boolean;
+// }
+
+// /**
+//  * Fetch a character by ID from the Supabase edge function.
+//  * Uses anon key (no user auth required)
+//  */
+// export async function getCharacterById(characterId: string): Promise<Character | null> {
+//   try {
+//     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+//     const endpoint = import.meta.env.VITE_GET_CHARACTER_BY_ID;
+
+//     if (!anonKey) {
+//       throw new Error('Missing VITE_SUPABASE_ANON_KEY');
+//     }
+
+//     if (!endpoint) {
+//       throw new Error('Missing VITE_GET_CHARACTER_BY_ID');
+//     }
+
+//     const res = await fetch(endpoint, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         Authorization: `Bearer ${anonKey}`, // ✅ matches your working curl
+//       },
+//       body: JSON.stringify({ characterId }),
+//     });
+
+//     if (!res.ok) {
+//       let errMsg = 'Failed to fetch character';
+//       try {
+//         const err = await res.json();
+//         errMsg = err.error || errMsg;
+//       } catch {
+//         // ignore JSON parse errors
+//       }
+//       throw new Error(errMsg);
+//     }
+
+//     const data = await res.json();
+//     return data.character as Character;
+//   } catch (err) {
+//     console.error('Error fetching character:', err);
+//     return null;
+//   }
+// }

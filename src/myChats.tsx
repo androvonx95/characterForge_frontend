@@ -24,6 +24,7 @@ export default function MyChats({
   const [chats, setChats] = useState<ChatDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const DEFAULT_IMAGE_URL = 'https://imgs.search.brave.com/pnuCjus6wNu_B0lj4soEUb4KKx9_pn-HorGYVHwBMwY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4t/aWNvbnMtcG5nLmZs/YXRpY29uLmNvbS8x/MjgvMTIyMjUvMTIy/MjU4ODEucG5n';
 
   // Get sidebar state for responsive layout
@@ -37,6 +38,7 @@ export default function MyChats({
       try {
         const { data } = await supabase.auth.getSession();
         if (!data.session) throw new Error('You are not authenticated');
+        setIsAuthenticated(true);
         const token = data.session.access_token;
         if (!token) throw new Error('No token found');
 
@@ -130,8 +132,8 @@ export default function MyChats({
     );
   }
   return (
-    <div className="app-layout">
-      <Sidebar onNavigate={onNavigate} currentPage="my-chats" />
+  <div className="app-layout">
+  <Sidebar onNavigate={onNavigate} currentPage="my-chats" isAuthenticated={isAuthenticated} />
       <main className={`main-content ${isOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
         <div className="myChats-container">
 
